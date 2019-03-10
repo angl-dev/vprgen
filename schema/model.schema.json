@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+        },
+        "input_ports": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "is_clock": {
+                        "type": "boolean",
+                        "default": false,
+                    },
+                    "clock": {
+                        "type": "string",
+                    },
+                    "combinational_sink_ports": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                    },
+                },
+                "required": ["name"],
+            },
+        },
+        "output_ports": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "is_clock": {
+                        "type": "boolean",
+                        "default": false,
+                    },
+                    "clock": {
+                        "type": "string",
+                    },
+                },
+                "required": ["name"],
+            },
+        },
+    },
+    "required": ["name"],
+}
+

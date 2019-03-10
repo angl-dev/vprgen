@@ -1,0 +1,604 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "delay_constant": {
+            "type": "object",
+            "properties": {
+                "in_port": {
+                    "type": "string",
+                },
+                "out_port": {
+                    "type": "string",
+                },
+                "min": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "max": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+            },
+            "oneOf": [{
+                "required": ["in_port", "out_port", "max"],
+            }, {
+                "required": ["in_port", "out_port", "min"],
+            }, {
+                "required": ["in_port", "out_port", "min", "max"],
+            }],
+        },
+        "delay_matrix": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": ["min", "max"],
+                },
+                "in_port": {
+                    "type": "string",
+                },
+                "out_port": {
+                    "type": "string",
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "number",
+                        "minimum": 0,
+                    },
+                },
+            },
+            "required": ["type", "in_port", "out_port", "values"],
+        },
+        "T_setup_or_hold": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "string",
+                },
+                "clock": {
+                    "type": "string",
+                },
+                "value": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+            },
+            "required": ["port", "clock", "value"],
+        },
+        "T_clock_to_Q": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "type": "string",
+                },
+                "clock": {
+                    "type": "string",
+                },
+                "min": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "max": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+            },
+            "oneOf": [{
+                "required": ["port", "clock", "min"],
+            }, {
+                "required": ["port", "clock", "max"],
+            }, {
+                "required": ["port", "clock", "min", "max"],
+            }],
+        },
+        "leaf_pb_type": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                },
+                "blif_model": {
+                    "type": "string",
+                },
+                "num_pb": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "default": 1,
+                },
+                "class": {
+                    "enum": ["lut", "flipflop", "memory"],
+                },
+                "input": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                            "port_class": {
+                                "enum": ["lut_in", "D",
+                                "address", "write_en", "data_in",
+                                "address1", "write_en1", "data_in1",
+                                "address2", "write_en2", "data_in2"],
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "output": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                            "port_class": {
+                                "enum": ["lut_out", "Q",
+                                "data_out", "data_out1", "data_out2"],
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "clock": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                            "port_class": {
+                                "enum": ["clock"],
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "delay_constant": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/delay_constant",
+                    },
+                },
+                "delay_matrix": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/delay_matrix",
+                    },
+                },
+                "T_setup": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/T_setup_or_hold",
+                    },
+                },
+                "T_hold": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/T_setup_or_hold",
+                    },
+                },
+                "T_clock_to_Q": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/T_clock_to_Q",
+                    },
+                },
+            },
+            "required": ["name", "blif_model"],
+        },
+        "complete_or_mux_or_direct": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                },
+                "input": {
+                    "type": "string",
+                },
+                "output": {
+                    "type": "string",
+                },
+                "pack_pattern": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "in_port": {
+                                "type": "string",
+                            },
+                            "out_port": {
+                                "type": "string",
+                            },
+                        },
+                        "required": ["name", "in_port", "out_port"],
+                    },
+                },
+                "delay_constant": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/delay_constant",
+                    },
+                },
+                "delay_matrix": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/delay_matrix",
+                    },
+                },
+            },
+            "required": ["name", "input", "output"],
+        },
+        "interconnect": {
+            "type": "object",
+            "properties": {
+                "complete": {
+                    "$ref": "#/definitions/complete_or_mux_or_direct",
+                },
+                "direct": {
+                    "$ref": "#/definitions/complete_or_mux_or_direct",
+                },
+                "mux": {
+                    "$ref": "#/definitions/complete_or_mux_or_direct",
+                },
+            },
+        },
+        "mode": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                },
+                "pb_type": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [{
+                            "$ref": "#/definitions/leaf_pb_type",
+                        }, {
+                            "$ref": "#/definitions/intermediate_pb_type",
+                        }],
+                    }
+                },
+                "interconnect": {
+                    "$ref": "#/definitions/interconnect",
+                },
+            },
+            "required": ["name"],
+        },
+        "intermediate_pb_type": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                },
+                "num_pb": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "default": 1,
+                },
+                "input": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "output": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "clock": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                            },
+                            "num_pins": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "default": 1,
+                            },
+                        },
+                        "required": ["name"],
+                    },
+                },
+                "mode": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/mode",
+                    },
+                },
+                "pb_type": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [{
+                            "$ref": "#/definitions/leaf_pb_type",
+                        }, {
+                            "$ref": "#/definitions/intermediate_pb_type",
+                        }],
+                    }
+                },
+                "interconnect": {
+                    "$ref": "#/definitions/interconnect",
+                },
+            },
+            "oneOf": [{
+                "required": ["name"],
+                "not": {"required": ["mode", "blif_model"]},
+                "$comment": "When 'mode' is not used, 'pb_type' and 'interconnect' can be used freely",
+            }, {
+                "required": ["name", "mode"],
+                "not": {"required": ["pb_type", "interconnect"]},
+                "$comment": "When 'mode' is used, 'pb_type' and 'interconnect' can not be used",
+            }],
+        },
+    },
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+        },
+        "capacity": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "default": 1,
+        },
+        "width": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "default": 1,
+        },
+        "height": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "default": 1,
+        },
+        "input": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "num_pins": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                    },
+                    "equivalent": {
+                        "enum": ["full"],
+                    },
+                    "is_non_clock_global": {
+                        "type": "boolean",
+                    }
+                },
+                "required": ["name", "num_pins"],
+            },
+        },
+        "output": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "num_pins": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                    },
+                    "equivalent": {
+                        "enum": ["full", "instance"],
+                    },
+                },
+                "required": ["name", "num_pins"],
+            },
+        },
+        "clock": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                    },
+                    "num_pins": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                    },
+                    "equivalent": {
+                        "enum": ["full", "instance"],
+                    },
+                },
+                "required": ["name", "num_pins"],
+            },
+        },
+        "fc": {
+            "type": "object",
+            "properties": {
+                "in_type": {
+                    "enum": ["abs", "frac"],
+                },
+                "in_val": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "out_type": {
+                    "enum": ["abs", "frac"],
+                },
+                "out_val": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "fc_override": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "fc_type": {
+                                "enum": ["abs", "frac"],
+                            },
+                            "fc_val": {
+                                "type": "number",
+                                "minimum": 0,
+                            },
+                            "port_name": {
+                                "type": "string",
+                            },
+                            "segment_name": {
+                                "type": "string",
+                            },
+                        },
+                        "required": ["fc_type", "fc_val", "port_name", "segment_name"],
+                    },
+                },
+            },
+            "required": ["in_type", "out_type", "in_val", "out_val"],
+        },
+        "pinlocations": {
+            "type": "object",
+            "properties": {
+                "pattern": {
+                    "enum": ["spread", "perimeter", "spread_inputs_perimeter_outputs", "custom"],
+                },
+                "loc": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "side": {
+                                "enum": ["left", "right", "bottom", "top"],
+                            },
+                            "xoffset": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "default": 0,
+                            },
+                            "yoffset": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "default": 0,
+                            },
+                            "ports": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                },
+                            },
+                        },
+                        "required": ["side", "ports"],
+                    },
+                },
+            },
+            "required": ["pattern"],
+        },
+        "switchblock_locations": {
+            "type": "object",
+            "properties": {
+                "pattern": {
+                    "enum": ["external_full_internal_straight", "all", "external", "internal", "none", "custom"],
+                },
+                "sb_loc": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "enum": ["full", "straight", "turns", "none"],
+                            },
+                            "xoffset": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "default": 0,
+                            },
+                            "yoffset": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "default": 0,
+                            },
+                            "switch_override": {
+                                "type": "string",
+                            },
+                        },
+                        "required": ["type"],
+                    },
+                },
+            },
+            "required": ["pattern"],
+        },
+        "mode": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/mode",
+            },
+        },
+        "pb_type": {
+            "type": "array",
+            "items": {
+                "oneOf": [{
+                    "$ref": "#/definitions/leaf_pb_type",
+                }, {
+                    "$ref": "#/definitions/intermediate_pb_type",
+                }],
+            }
+        },
+        "interconnect": {
+            "$ref": "#/definitions/interconnect",
+        },
+    },
+    "oneOf": [{
+        "required": ["name"],
+        "not": {"required": ["mode"]},
+        "$comment": "When 'mode' is not used, 'pb_type' and 'interconnect' can be used freely",
+    }, {
+        "required": ["name", "mode"],
+        "not": {"required": ["pb_type", "interconnect"]},
+        "$comment": "When 'mode' is used, 'pb_type' and 'interconnect' can not be used",
+    }],
+}
