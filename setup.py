@@ -13,6 +13,7 @@ setup(
         description = "VPR's architecture description and routing resource graph XML generation API",
         url = "https://github.com/leon575777642/vprgen",
         packages = ["vprgen"],
+        include_package_data = True,
         long_description = read("README.md"),
         classifiers = [
             "Development Status :: 1 - Planning",
