@@ -77,3 +77,31 @@ class ArchitectureDelegate(object):
         """
         return
         yield None  # mark this method as a generator
+
+    def get_x_channel_width(self):
+        """Get the width of horizontal routing channels."""
+        raise NotImplementedError
+
+    def get_y_channel_width(self):
+        """Get the width of vertical routing channels."""
+        raise NotImplementedError
+
+    def iter_nodes(self):
+        """Iterate or generate routing nodes for the <node> tag under the <rr_nodes> tag in VPR's routing resource
+        graph XML.
+
+        Each element in the returned iterator/generator should be a `dict` satisfying the JSON schema
+        'schema/source_sink.schema.json' or 'schema/ipin_opin.schema.json' or 'schema/chanx_chany.schema.json'.
+        """
+        return
+        yield None  # mark this method as a generator
+
+    def iter_edges(self):
+        """Iterate or generate routing edges for the <edge> tag under the <rr_edges> tag in VPR's routing resource
+        graph XML.
+
+        Each element in the returned iterator/generator should be a `dict` satisfying the JSON schema
+        'schema/edge.schema.json'.
+        """
+        return
+        yield None  # mark this method as a generator
