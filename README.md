@@ -1,5 +1,13 @@
 # VPRGEN: Python API for VPR Architecture Description and Routing Resource Graph Generation
 
+## Usage
+
+Users should inherit the `vprgen.ArchitectureDelegate` class and implement
+required methods. Call the `vprgen.gen_arch_xml` function and/or
+`vprgen.gen_rrg_xml` function on an instance of the inherited class to
+generate the architecture description XML and/or the routing resource graph
+XML.
+
 ## Design Choices
 
 ### Validation
@@ -16,9 +24,9 @@ devices.
 VPRGEN only supports uni-directional segments.
 
 ### Device
-VPRGEN produces a fake &lt;device&gt; tag in the generated architecture
+VPRGEN produces a fake `<device>` tag in the generated architecture
 description XML, because the information defined under the tag is either not
 useful for physical devices or overwritten by the routing resource graph XML.
-&lt;switchblocklist&gt; tag is not supported for the same reason. All
+`<switchblocklist>` tag is not supported for the same reason. All
 switchblock patterns will be implemented as edges in the routing resource
 graph XML.
