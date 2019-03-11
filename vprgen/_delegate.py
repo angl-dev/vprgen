@@ -1,3 +1,8 @@
+from future.builtins import object
+
+# ----------------------------------------------------------------------------
+# -- Architecture Delegate ---------------------------------------------------
+# ----------------------------------------------------------------------------
 class ArchitectureDelegate(object):
     """Delegate class which is able to answer questions about what are in the architecture."""
 
