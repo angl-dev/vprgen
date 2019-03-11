@@ -20,13 +20,17 @@ class ArchitectureDelegate(object):
         return
         yield None  # mark this method as a generator
 
-    def width(self):
+    def get_width(self):
         """Width of the FPGA grid."""
         raise NotImplementedError
 
-    def height(self):
+    def get_height(self):
         """Height of the FPGA grid."""
         raise NotImplementedError
+
+    def get_layout_name(self):
+        """Name of the layout."""
+        return "default"
 
     def get_tile(self, x, y):
         """Get the physical block at tile (x, y).
@@ -50,6 +54,26 @@ class ArchitectureDelegate(object):
 
         Each element in the returned iterator/generator should be a `dict` satisfying the JSON schema
         'schema/segment.schema.json'.
+        """
+        return
+        yield None  # mark this method as a generator
+
+    def iter_switches(self):
+        """Iterate or generate switches for the <switch> tags under the <switchlist> tag in VPR's architecture
+        description XML and the <switches> tag under the <switches> tag in VPR's routing resource graph XML.
+
+        Each element in the returned iterator/generator should be a `dict` satisfying the JSON schema
+        'schema/switch.schema.json'.
+        """
+        return
+        yield None  # mark this method as a generator
+
+    def iter_directs(self):
+        """Iterate or generate directs for the <direct> tags under the <directlist> tag in VPR's architecture
+        description XML.
+
+        Each element in the returned iterator/generator should be a `dict` satisfying the JSON schema
+        'schema/direct.schema.json'.
         """
         return
         yield None  # mark this method as a generator

@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$comment": "Bidirectional segments are not supported",
     "type": "object",
     "properties": {
         "name": {
@@ -28,6 +29,21 @@
             "minimum": 0,
             "default": 0,
         },
+        "sb": {
+            "type": "array",
+            "items": {
+                "type": "boolean",
+            },
+        },
+        "cb": {
+            "type": "array",
+            "items": {
+                "type": "boolean",
+            },
+        },
+        "mux": {
+            "type": "string",
+        },
     },
-    "required": ["name", "length", "id"], 
+    "required": ["name", "length", "id", "mux"], 
 }
