@@ -384,6 +384,10 @@
         "name": {
             "type": "string",
         },
+        "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+        },
         "capacity": {
             "type": "integer",
             "exclusiveMinimum": 0,
@@ -593,11 +597,11 @@
         },
     },
     "oneOf": [{
-        "required": ["name"],
+        "required": ["name", "id"],
         "not": {"required": ["mode"]},
         "$comment": "When 'mode' is not used, 'pb_type' and 'interconnect' can be used freely",
     }, {
-        "required": ["name", "mode"],
+        "required": ["name", "id", "mode"],
         "not": {"required": ["pb_type", "interconnect"]},
         "$comment": "When 'mode' is used, 'pb_type' and 'interconnect' can not be used",
     }],

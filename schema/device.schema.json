@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "sizing": {
+            "type": "object",
+            "properties": {
+                "R_minW_nmos": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+                "R_minW_pmos": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+            },
+            "required": ["R_minW_nmos", "R_minW_pmos"],
+        },
+        "connection_block": {
+            "type": "object",
+            "properties": {
+                "input_switch_name": {
+                    "type": "string",
+                },
+            },
+            "required": ["input_switch_name"],
+        },
+        "area": {
+            "type": "object",
+            "properties": {
+                "grid_logic_tile_area": {
+                    "type": "number",
+                    "minimum": 0,
+                },
+            },
+            "required": ["grid_logic_tile_area"],
+        },
+    },
+    "required": ["sizing", "connection_block", "area"],
+}

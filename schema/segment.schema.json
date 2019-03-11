@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+        },
+        "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+        },
+        "length": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+        },
+        "freq": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0,
+        },
+        "Rmetal": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0,
+        },
+        "Cmetal": {
+            "type": "number",
+            "minimum": 0,
+            "default": 0,
+        },
+    },
+    "required": ["name", "length", "id"], 
+}
