@@ -1,5 +1,5 @@
 from vprgen._xml import XMLGenerator
-from vprgen._gen_arch import gen_model, gen_segment, gen_switch
+from vprgen._gen_arch import gen_model, gen_segment, gen_switch, gen_direct
 
 try:
     from io import BytesIO as StringIO
@@ -72,4 +72,24 @@ def test_gen_switch():
         "@Cin": "0",
         "@Cout": "0",
         "@Tdel": "1.2e-10",
+        }}
+
+def test_gen_direct():
+    stream = StringIO()
+    with XMLGenerator(stream) as xg:
+        gen_direct(xg, { "name": "adder_chain",
+            "from_pin": "clb.cout",
+            "to_pin": "clb.cin",
+            "y_offset": 1,
+            "switch_name": "default", })
+    back = parse(stream.getvalue(), encoding="ascii")
+    # back = parse(stream.getvalue(), encoding="ascii", dict_constructor=dict)
+    assert back == {"direct": {
+        "@name": "adder_chain",
+        "@from_pin": "clb.cout",
+        "@to_pin": "clb.cin",
+        "@x_offset": "0",
+        "@y_offset": "1",
+        "@z_offset": "0",
+        "@switch_name": "default",
         }}

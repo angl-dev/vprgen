@@ -18,6 +18,7 @@ import os
 _model_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "model.schema.json")))
 _segment_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "segment.schema.json")))
 _switch_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "switch.schema.json")))
+_direct_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "direct.schema.json")))
 
 def gen_model(xmlgen, model):
     """Generate a <model> tag for the given ``model``.
@@ -103,6 +104,20 @@ def gen_switch(xmlgen, switch):
     else:
         attrs["Tdel"] = Tdel
         xmlgen.element_leaf("switch", attrs)
+
+def gen_direct(xmlgen, direct):
+    """Generate a <direct> tag for the given ``direct``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        direct (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/direct.schema.json'
+    """
+    # 1. validate argument
+    validate(instance = direct, schema = _direct_schema)
+    # 2. generate tag
+    attrs = {"x_offset": 0, "y_offset": 0, "z_offset": 0}
+    attrs.update(direct)
+    xmlgen.element_leaf("direct", attrs)
 
 def gen_arch_xml(ostream, delegate, pretty = True):
     """Stream generate VPR's architecture description XML.
