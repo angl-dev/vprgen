@@ -1,4 +1,5 @@
 from future.utils import raise_from
+from future.builtins import range
 
 try:
     from itertools import imap as map
@@ -19,6 +20,7 @@ _model_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "mod
 _segment_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "segment.schema.json")))
 _switch_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "switch.schema.json")))
 _direct_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "direct.schema.json")))
+_block_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "block.schema.json")))
 
 def gen_model(xmlgen, model):
     """Generate a <model> tag for the given ``model``.
@@ -118,6 +120,68 @@ def gen_direct(xmlgen, direct):
     attrs = {"x_offset": 0, "y_offset": 0, "z_offset": 0}
     attrs.update(direct)
     xmlgen.element_leaf("direct", attrs)
+
+def gen_delay_matrix(xmlgen, delay):
+    """Generate a <delay_matrix> tag for the given ``delay``.
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        delay (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json/definitions/delay_matrix'
+    """
+    values = delay['values']
+    attrs = { "type": delay["type"],
+            "in_port": delay["in_port"],
+            "out_port": delay["out_port"], }
+    text = ('\n' + '\n'.join(' '.join('{:g}'.format(v) for v in vector) for vector in values) + '\n')
+    xmlgen.element_leaf("delay_matrix", attrs, text)
+
+def gen_leaf_pb_type(xmlgen, pb_type):
+    """Generate a leaf <pb_type> tag for the given ``pb_type``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        pb_type (:obj:`dict`): a `dict` satisfying the JSON schema
+            'schema/block.schema.json/definitions/leaf_pb_type'
+    """
+    attrs = { "name": pb_type["name"],
+            "blif_model": pb_type["blif_model"],
+            "num_pb": pb_type.get("num_pb", 1), }
+    cls = pb_type.get("class", None)
+    if cls:
+        attrs["class"] = cls
+    with xmlgen.element("pb_type", attrs):
+        for key in ("input", "output", "clock", "T_setup", "T_hold", "T_clock_to_Q", "delay_constant"):
+            for item in pb_type.get(key, []):
+                xmlgen.element_leaf(key, item)
+        for delay_matrix in pb_type.get("delay_matrix", []):
+            gen_delay_matrix(xmlgen, delay_matrix)
+
+def gen_mode(xmlgen, mode):
+    """Generate a <mode> tag for the given ``mode``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        mode (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json/definitions/mode'
+    """
+    pass
+
+def gen_intermediate_pb_type(xmlgen, pb_type):
+    """Generate an intermediate <pb_type> tag for the given ``pb_type``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        pb_type (:obj:`dict`): a `dict` satisfying the JSON schema
+            'schema/block.schema.json/definitions/intermediate_pb_type'
+    """
+    pass
+
+def gen_block(xmlgen, block):
+    """Generate a top-level <pb_type> tag for the given ``block``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        block (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json'
+    """
+    pass
 
 def gen_arch_xml(ostream, delegate, pretty = True):
     """Stream generate VPR's architecture description XML.

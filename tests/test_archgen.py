@@ -1,5 +1,5 @@
 from vprgen._xml import XMLGenerator
-from vprgen._gen_arch import gen_model, gen_segment, gen_switch, gen_direct
+from vprgen._gen_arch import (gen_model, gen_segment, gen_switch, gen_direct, gen_leaf_pb_type)
 
 try:
     from io import BytesIO as StringIO
@@ -83,7 +83,6 @@ def test_gen_direct():
             "y_offset": 1,
             "switch_name": "default", })
     back = parse(stream.getvalue(), encoding="ascii")
-    # back = parse(stream.getvalue(), encoding="ascii", dict_constructor=dict)
     assert back == {"direct": {
         "@name": "adder_chain",
         "@from_pin": "clb.cout",
@@ -92,4 +91,43 @@ def test_gen_direct():
         "@y_offset": "1",
         "@z_offset": "0",
         "@switch_name": "default",
+        }}
+
+def test_gen_leaf_pb_type():
+    stream = StringIO()
+    with XMLGenerator(stream) as xg:
+        gen_leaf_pb_type(xg, {
+            "name": "lut_inst",
+            "blif_model": ".names",
+            "class": "lut",
+            "input": [{ "name": "in",
+                    "num_pins": 4,
+                    "port_class": "lut_in",
+                }],
+            "output": [{ "name": "out",
+                    "num_pins": 1,
+                    "port_class": "lut_out",
+                }],
+            "delay_matrix": [{ "type": "min",
+                "in_port": "in",
+                "out_port": "out",
+                "values": [[120e-12], [120e-12], [120e-12], [120e-12]],
+                }],
+            })
+    back = parse(stream.getvalue(), encoding="ascii")
+    assert back == {"pb_type": {
+        "@name": "lut_inst",
+        "@blif_model": ".names",
+        "@num_pb": "1",
+        "@class": "lut",
+        "input": { "@name": "in",
+            "@num_pins": "4",
+            "@port_class": "lut_in", },
+        "output": { "@name": "out",
+            "@num_pins": "1",
+            "@port_class": "lut_out", },
+        "delay_matrix": { "@type": "min",
+            "@in_port": "in",
+            "@out_port": "out",
+            "#text": "1.2e-10\n1.2e-10\n1.2e-10\n1.2e-10", },
         }}
