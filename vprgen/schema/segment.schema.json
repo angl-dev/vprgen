@@ -3,47 +3,39 @@
     "$comment": "Bidirectional segments are not supported",
     "type": "object",
     "properties": {
-        "name": {
-            "type": "string",
-        },
+        "name": { "type": "string" },
         "id": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "minimum": 0
         },
         "length": {
             "type": "integer",
-            "exclusiveMinimum": 0,
+            "exclusiveMinimum": 0
         },
         "freq": {
             "type": "number",
             "minimum": 0,
-            "default": 0,
+            "default": 0
         },
         "Rmetal": {
             "type": "number",
             "minimum": 0,
-            "default": 0,
+            "default": 0
         },
         "Cmetal": {
             "type": "number",
             "minimum": 0,
-            "default": 0,
+            "default": 0
         },
         "sb": {
             "type": "array",
-            "items": {
-                "type": "boolean",
-            },
+            "items": { "type": "boolean" }
         },
         "cb": {
             "type": "array",
-            "items": {
-                "type": "boolean",
-            },
+            "items": { "type": "boolean" }
         },
-        "mux": {
-            "type": "string",
-        },
+        "mux": { "type": "string" }
     },
-    "required": ["name", "length", "id", "mux"], 
+    "required": [ "name", "length", "id", "mux" ]
 }

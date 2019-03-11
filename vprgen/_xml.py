@@ -30,6 +30,9 @@ class XMLGenerator(object):
     def __exit__(self, exc_type, exc_value, traceback):
         return self.__context.__exit__(exc_type, exc_value, traceback)
 
+    def _stringify(self, d):
+        return {k: '{:g}'.format(v) if isinstance(v, float) else str(v) for k, v in iteritems(d)} 
+
     def _indent(self):
         if self.__pretty and self._depth > 0:
             self._xf.write('\t' * self._depth)
@@ -61,12 +64,11 @@ class XMLGenerator(object):
             return ret
 
     def element(self, tag, attrs = None):
-        return self.__XMLElementContextManager(self, tag,
-                {k: str(v) for k, v in iteritems(attrs or {})})
+        return self.__XMLElementContextManager(self, tag, self._stringify(attrs or {}))
 
     def element_leaf(self, tag, attrs = None, text = None):
         self._indent()
-        with self._xf.element(tag, {k: str(v) for k, v in iteritems(attrs or {})}):
+        with self._xf.element(tag, self._stringify(attrs or {})):
             if text:
                 self._xf.write(text)
         self._newline()
