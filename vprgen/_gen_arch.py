@@ -14,6 +14,7 @@ except ImportError:
 from vprgen._xml import XMLGenerator
 from jsonschema import validate
 from json import load
+from itertools import product
 import os
 
 _model_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "model.schema.json")))
@@ -280,6 +281,20 @@ def gen_block(xmlgen, block):
                         attrs["switch_override"] = switch_override
                     xmlgen.element_leaf("sb_loc", attrs)
 
+def gen_single_tile(xmlgen, tile):
+    """Generate a <single> tag for the given ``tile``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        tile (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/tile.schema.json'
+    """
+    if tile.get("xoffset", 0) == 0 and tile.get("yoffset", 0) == 0:
+        xmlgen.element_leaf("single", {
+            "type": tile["type"],
+            "x": tile["x"],
+            "y": tile["y"],
+            "priority": 1})
+
 def gen_arch_xml(ostream, delegate, pretty = True):
     """Stream generate VPR's architecture description XML.
 
@@ -306,7 +321,16 @@ def gen_arch_xml(ostream, delegate, pretty = True):
             with xmlgen.element("complexblocklist"):
                 for block in delegate.iter_blocks():
                     gen_block(xmlgen, block)
-            # 5. fake device
+            # 5. layout
+            with xmlgen.element("layout"), xmlgen.element("fixed_layout", {
+                "name": delegate.get_layout_name(),
+                "width": delegate.get_width(),
+                "height": delegate.get_height(), }):
+                for x, y in product(range(delegate.get_width()), range(delegate.get_height())):
+                    tile = delegate.get_tile(x, y)
+                    if tile:
+                        gen_single_tile(xmlgen, tile)
+            # 6. fake device
             with xmlgen.element("device"):
                 xmlgen.element_leaf("sizing", {"R_minW_nmos": 0, "R_minW_pmos": 0})
                 xmlgen.element_leaf("connection_block", {"input_switch_name": next(delegate.iter_switches())["name"]})
