@@ -155,6 +155,27 @@ def gen_leaf_pb_type(xmlgen, pb_type):
         for delay_matrix in pb_type.get("delay_matrix", []):
             gen_delay_matrix(xmlgen, delay_matrix)
 
+def gen_interconnect(xmlgen, interconnect):
+    """Generate a <interconnect> tag for the given ``interconnect``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        interconnect (:obj:`dict`): a `dict` satisfying the JSON schema
+            'schema/block.schema.json/definitions/interconnect'
+    """
+    with xmlgen.element("interconnect"):
+        for itx_type in ("complete", "direct", "mux"):
+            for itx in interconnect.get(itx_type, []):
+                with xmlgen.element(itx_type, {
+                    "name": itx["name"],
+                    "input": itx["input"],
+                    "output": itx["output"], }):
+                    for key in ("pack_pattern", "delay_constant"):
+                        for item in itx.get(key, []):
+                            xmlgen.element_leaf(key, item)
+                    for delay_matrix in itx.get("delay_matrix", []):
+                        gen_delay_matrix(xmlgen, delay_matrix)
+
 def gen_mode(xmlgen, mode):
     """Generate a <mode> tag for the given ``mode``.
 
@@ -162,7 +183,12 @@ def gen_mode(xmlgen, mode):
         xmlgen (`XMLGenerator`): the generator to be used
         mode (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json/definitions/mode'
     """
-    pass
+    with xmlgen.element("mode", {"name": mode["name"]}):
+        for pb_type in mode.get("pb_type", []):
+            gen_intermediate_pb_type(xmlgen, pb_type)
+        interconnect = mode.get("interconnect", None)
+        if interconnect:
+            gen_interconnect(xmlgen, interconnect)
 
 def gen_intermediate_pb_type(xmlgen, pb_type):
     """Generate an intermediate <pb_type> tag for the given ``pb_type``.
@@ -172,7 +198,22 @@ def gen_intermediate_pb_type(xmlgen, pb_type):
         pb_type (:obj:`dict`): a `dict` satisfying the JSON schema
             'schema/block.schema.json/definitions/intermediate_pb_type'
     """
-    pass
+    if "pb_type" not in pb_type and "mode" not in pb_type:
+        gen_leaf_pb_type(xmlgen, pb_type)
+        return
+    with xmlgen.element("pb_type", {
+        "name": pb_type["name"],
+        "num_pb": pb_type.get("num_pb", 1), }):
+        for key in ("input", "output", "clock"):
+            for item in pb_type.get(key, []):
+                xmlgen.element_leaf(key, item)
+        for mode in pb_type.get("mode", []):
+            gen_mode(xmlgen, mode)
+        for sub_pb in pb_type.get("pb_type", []):
+            gen_intermediate_pb_type(xmlgen, sub_pb)
+        interconnect = pb_type.get("interconnect", None)
+        if interconnect:
+            gen_interconnect(xmlgen, interconnect)
 
 def gen_block(xmlgen, block):
     """Generate a top-level <pb_type> tag for the given ``block``.
@@ -181,7 +222,63 @@ def gen_block(xmlgen, block):
         xmlgen (`XMLGenerator`): the generator to be used
         block (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json'
     """
-    pass
+    with xmlgen.element("pb_type", {
+        "name": block["name"],
+        "capacity": block.get("capacity", 1),
+        "width": block.get("width", 1),
+        "height": block.get("height", 1), }):
+        for input_ in block.get("input", []):
+            attrs = {
+                "name": input_["name"],
+                "num_pins": input_["num_pins"], }
+            equivalent = input_.get("equivalent", None)
+            if equivalent:
+                attrs["equivalent"] = equivalent
+            is_non_clock_global = input_.get("is_non_clock_global", False)
+            if is_non_clock_global:
+                attrs["is_non_clock_global"] = "true"
+            xmlgen.element_leaf("input", attrs)
+        for key in ("output", "clock"):
+            for item in block.get(key, []):
+                xmlgen.element_leaf(key, item)
+        for mode in block.get("mode", []):
+            gen_mode(xmlgen, mode)
+        for pb_type in block.get("pb_type", []):
+            gen_intermediate_pb_type(xmlgen, pb_type)
+        interconnect = block.get("interconnect", None)
+        if interconnect:
+            gen_interconnect(xmlgen, interconnect)
+        fc = block.get("fc", None)
+        if fc:
+            with xmlgen.element("fc", {
+                "in_type": fc["in_type"],
+                "in_val": fc["in_val"],
+                "out_type": fc["out_type"],
+                "out_val": fc["out_val"], }):
+                for fc_override in fc.get("fc_override", []):
+                    xmlgen.element_leaf("fc_override", fc_override)
+        pinlocations = block.get("pinlocations", None)
+        if pinlocations:
+            with xmlgen.element("pinlocations", {
+                "pattern": pinlocations["pattern"], }):
+                for loc in pinlocations.get("loc", []):
+                    xmlgen.element_leaf("loc", {
+                        "side": loc["side"],
+                        "xoffset": loc.get("xoffset", 0),
+                        "yoffset": loc.get("yoffset", 0), },
+                        " ".join(loc["ports"]))
+        switchblock_locations = block.get("switchblock_locations", None)
+        if switchblock_locations:
+            with xmlgen.element("switchblock_locations", {
+                "pattern": switchblock_locations["pattern"], }):
+                for sb_loc in switchblock_locations.get("sb_loc", []):
+                    attrs = { "type": sb_loc["type"],
+                            "xoffset": sb_loc.get("xoffset", 0),
+                            "yoffset": sb_loc.get("yoffset", 0), }
+                    switch_override = sb_loc.get("switch_override", None)
+                    if switch_override:
+                        attrs["switch_override"] = switch_override
+                    xmlgen.element_leaf("sb_loc", attrs)
 
 def gen_arch_xml(ostream, delegate, pretty = True):
     """Stream generate VPR's architecture description XML.
@@ -191,24 +288,28 @@ def gen_arch_xml(ostream, delegate, pretty = True):
         delegate (`ArchitectureDelegate`): the delegate which answers questions about what are in the architecture
         pretty (:obj:`bool`): if the output XML file should be nicely broken into multiple lines and indented
     """
-    with XMLGenerator(ostream, pretty) as xg:
-        with xg.element("architecture"):
+    with XMLGenerator(ostream, pretty) as xmlgen:
+        with xmlgen.element("architecture"):
             # 1. models
-            with xg.element("models"):
+            with xmlgen.element("models"):
                 for model in delegate.iter_models():
-                    gen_model(xg, model)
+                    gen_model(xmlgen, model)
             # 2. segments
-            with xg.element("segmentlist"):
+            with xmlgen.element("segmentlist"):
                 for segment in delegate.iter_segments():
-                    gen_segment(xg, segment)
+                    gen_segment(xmlgen, segment)
             # 3. switches
-            with xg.element("switchlist"):
+            with xmlgen.element("switchlist"):
                 for switch in delegate.iter_switches():
-                    gen_switch(xg, switch)
-            # 4. fake device
-            with xg.element("device"):
-                xg.element_leaf("sizing", {"R_minW_nmos": 0, "R_minW_pmos": 0})
-                xg.element_leaf("connection_block", {"input_switch_name": next(delegate.iter_switches())["name"]})
-                xg.element_leaf("area", {"grid_logic_tile_area": 0})
-                xg.element_leaf("switch_block", {"type": "wilton", "fs": 3})
-                xg.element_leaf("default_fc", {"in_type": "frac", "in_val": 0.5, "out_type": "frac", "out_val": 0.5})
+                    gen_switch(xmlgen, switch)
+            # 4. blocks
+            with xmlgen.element("complexblocklist"):
+                for block in delegate.iter_blocks():
+                    gen_block(xmlgen, block)
+            # 5. fake device
+            with xmlgen.element("device"):
+                xmlgen.element_leaf("sizing", {"R_minW_nmos": 0, "R_minW_pmos": 0})
+                xmlgen.element_leaf("connection_block", {"input_switch_name": next(delegate.iter_switches())["name"]})
+                xmlgen.element_leaf("area", {"grid_logic_tile_area": 0})
+                xmlgen.element_leaf("switch_block", {"type": "wilton", "fs": 3})
+                xmlgen.element_leaf("default_fc", {"in_type": "frac", "in_val": 0.5, "out_type": "frac", "out_val": 0.5})
