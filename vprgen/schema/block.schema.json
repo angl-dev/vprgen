@@ -15,12 +15,10 @@
                     "minimum": 0
                 }
             },
-            "oneOf": [{
+            "anyOf": [{
                 "required": ["in_port", "out_port", "max"]
             }, {
                 "required": ["in_port", "out_port", "min"]
-            }, {
-                "required": ["in_port", "out_port", "min", "max"]
             }]
         },
         "delay_matrix": {
@@ -40,7 +38,7 @@
                     }
                 }
             },
-            "required": ["type", "in_port", "out_port", "n_output", "values"]
+            "required": ["type", "in_port", "out_port", "values"]
         },
         "T_setup_or_hold": {
             "type": "object",
@@ -68,12 +66,10 @@
                     "minimum": 0
                 }
             },
-            "oneOf": [{
+            "anyOf": [{
                 "required": ["port", "clock", "min"]
             }, {
                 "required": ["port", "clock", "max"]
-            }, {
-                "required": ["port", "clock", "min", "max"]
             }]
         },
         "leaf_pb_type": {
@@ -95,8 +91,7 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             },
                             "port_class": {
                                 "enum": ["lut_in", "D",
@@ -105,7 +100,7 @@
                                 "address2", "write_en2", "data_in2"]
                             }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "output": {
@@ -116,15 +111,14 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             },
                             "port_class": {
                                 "enum": ["lut_out", "Q",
                                 "data_out", "data_out1", "data_out2"]
                             }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "clock": {
@@ -135,12 +129,11 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             },
                             "port_class": { "enum": ["clock"] }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "delay_constant": {
@@ -198,9 +191,18 @@
         "interconnect": {
             "type": "object",
             "properties": {
-                "complete": { "$ref": "#/definitions/complete_or_mux_or_direct" },
-                "direct": { "$ref": "#/definitions/complete_or_mux_or_direct" },
-                "mux": { "$ref": "#/definitions/complete_or_mux_or_direct" }
+                "complete": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/complete_or_mux_or_direct" }
+                },
+                "direct": { 
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/complete_or_mux_or_direct" }
+                },
+                "mux": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/complete_or_mux_or_direct" }
+                }
             }
         },
         "mode": {
@@ -238,11 +240,10 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "output": {
@@ -253,11 +254,10 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "clock": {
@@ -268,11 +268,10 @@
                             "name": { "type": "string" },
                             "num_pins": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "default": 1
+                                "exclusiveMinimum": 0
                             }
                         },
-                        "required": ["name"]
+                        "required": ["name", "num_pins"]
                     }
                 },
                 "mode": {
@@ -294,12 +293,12 @@
                 }
             },
             "oneOf": [{
-                "required": ["name"],
+                "required": ["name", "pb_type", "interconnect"],
                 "not": {"required": ["mode", "blif_model"]},
                 "$comment": "When 'mode' is not used, 'pb_type' and 'interconnect' can be used freely"
             }, {
                 "required": ["name", "mode"],
-                "not": {"required": ["pb_type", "interconnect"]},
+                "not": {"required": ["pb_type", "interconnect", "blif_model"]},
                 "$comment": "When 'mode' is used, 'pb_type' and 'interconnect' can not be used"
             }]
         }
@@ -482,7 +481,7 @@
         "interconnect": { "$ref": "#/definitions/interconnect" }
     },
     "oneOf": [{
-        "required": ["name", "id"],
+        "required": ["name", "id", "pb_type", "interconnect"],
         "not": {"required": ["mode"]},
         "$comment": "When 'mode' is not used, 'pb_type' and 'interconnect' can be used freely"
     }, {
