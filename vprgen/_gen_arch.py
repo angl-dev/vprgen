@@ -280,18 +280,20 @@ def gen_block(xmlgen, block):
                         attrs["switch_override"] = switch_override
                     xmlgen.element_leaf("sb_loc", attrs)
 
-def gen_single_tile(xmlgen, tile):
+def gen_tile(xmlgen, tile, x, y):
     """Generate a <single> tag for the given ``tile``.
 
     Args:
         xmlgen (`XMLGenerator`): the generator to be used
         tile (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/tile.schema.json'
+        x (:obj:`int`): the X position
+        y (:obj:`int`): the Y position
     """
     if tile.get("xoffset", 0) == 0 and tile.get("yoffset", 0) == 0:
         xmlgen.element_leaf("single", {
             "type": tile["type"],
-            "x": tile["x"],
-            "y": tile["y"],
+            "x": x,
+            "y": y,
             "priority": 1})
 
 def gen_arch_xml(ostream, delegate, pretty = True):
@@ -328,7 +330,7 @@ def gen_arch_xml(ostream, delegate, pretty = True):
                 for x, y in product(range(delegate.get_width()), range(delegate.get_height())):
                     tile = delegate.get_tile(x, y)
                     if tile:
-                        gen_single_tile(xmlgen, tile)
+                        gen_tile(xmlgen, tile, x, y)
             # 6. fake device
             with xmlgen.element("device"):
                 xmlgen.element_leaf("sizing", {"R_minW_nmos": 0, "R_minW_pmos": 0})

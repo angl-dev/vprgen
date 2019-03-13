@@ -8,12 +8,15 @@ except ImportError:
 from vprgen._xml import XMLGenerator
 from jsonschema import validate
 from json import load
+from itertools import count, product
 import os
 
 _segment_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "segment.schema.json")))
 _switch_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "switch.schema.json")))
+_block_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "block.schema.json")))
+_tile_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "tile.schema.json")))
 _node_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "node.schema.json")))
-_edge_scgema = load(open(os.path.join(os.path.dirname(__file__), "schema", "edge.schema.json")))
+_edge_schema = load(open(os.path.join(os.path.dirname(__file__), "schema", "edge.schema.json")))
 
 def gen_segment(xmlgen, segment):
     """Generate a <segment> tag for the given ``segment``.
@@ -59,6 +62,92 @@ def gen_switch(xmlgen, switch):
             "R": switch.get("R", 0),
             "Tdel": switch["Tdel"], })
 
+def gen_block(xmlgen, block):
+    """Generate a <block_type> tag for the given ``block``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        block (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/block.schema.json'
+    """
+    # 1. validate argument
+    validate(instance = block, schema = _block_schema)
+    # 2. generate tag
+    with xmlgen.element("block_type", {
+        "name": block["name"],
+        "id": block["id"],
+        "width": block.get("width", 1),
+        "height": block.get("height", 1), }):
+        ptc_it = count()
+        capacity = block.get("capacity", 1)
+        for z, key in product(range(capacity), ("input", "output", "clock")):
+            for port in block.get(key, []):
+                for bit in range(port["num_pins"]):
+                    with xmlgen.element("pin_class", {
+                        "type": "OUTPUT" if key == "output" else "INPUT", }):
+                        if capacity == 1:
+                            xmlgen.element_leaf("pin", {
+                                "ptc": next(ptc_it), },
+                                "{}.{}[{}]".format(block["name"], port["name"], bit), })
+                        else:
+                            xmlgen.element_leaf("pin", {
+                                "ptc": next(ptc_it), },
+                                "{}[{}].{}[{}]".format(block["name"], z, port["name"], bit), })
+
+def gen_tile(xmlgen, tile, x, y):
+    """Generate a <grid_loc> tag for the given ``tile``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        tile (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/tile.schema.json'
+        x (:obj:`int`): the X position
+        y (:obj:`int`): the Y position
+    """
+    # 1. validate argument
+    validate(instance = tile, schema = _tile_schema)
+    # 2. generate tag
+    xmlgen.element_leaf("grid_loc", {
+        "block_type_id": tile["block_type_id"],
+        "x": x,
+        "y": y,
+        "width_offset": tile.get("xoffset", 0),
+        "height_offset": tile.get("yoffset", 0), })
+
+def gen_node(xmlgen, node):
+    """Generate a <node> tag for the given ``node``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        node (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/node.schema.json'
+    """
+    # 1. validate argument
+    validate(instance = node, schema = _node_schema)
+    # 2. generate tag
+    attrs = { "capacity": node.get("capacity", 1),
+            "id": node["id"],
+            "type": node["type"], }
+    if node["type"] in ("CHANX", "CHANY"):
+        attrs["direction"] = node["direction"]
+    with xmlgen.element("node", attrs):
+        timing = {"R": 0, "C": 0}
+        timing.update(node.get("timing", {}))
+        xmlgen.element_leaf("timing", timing)
+        xmlgen.element_leaf("loc", node["loc"])
+        if node["type"] in ("CHANX", "CHANY"):
+            xmlgen.element_leaf("segment", {
+                "segment_id": node["segment_id"], })
+
+def gen_edge(xmlgen, edge):
+    """Generate a <edge> tag for the given ``edge``.
+
+    Args:
+        xmlgen (`XMLGenerator`): the generator to be used
+        edge (:obj:`dict`): a `dict` satisfying the JSON schema 'schema/edge.schema.json'
+    """
+    # 1. validate argument
+    validate(instance = edge, schema = _edge_schema)
+    # 2. generate tag
+    xmlgen.element_leaf("edge", edge)
+
 def gen_rrg_xml(ostream, delegate, pretty = True):
     """Stream generate VPR's routing resource graph XML.
 
@@ -95,3 +184,32 @@ def gen_rrg_xml(ostream, delegate, pretty = True):
                 for switch in delegate.iter_switches():
                     gen_switch(xmlgen, switch)
             # 4. blocks
+            with xmlgen.element("block_types"):
+                xmlgen.element_leaf("block_type", {
+                    "name": "EMPTY",
+                    "id": 0,
+                    "width": 1,
+                    "height": 1, })
+                for block in delegate.iter_blocks():
+                    gen_block(xmlgen, block)
+            # 5. grid
+            with xmlgen.element("grid"):
+                for x, y in product(range(delegate.get_width()), range(delegate.get_height())):
+                    tile = delegate.get_tile(x, y)
+                    if tile is None:
+                        xmlgen.element_leaf("grid_loc", {
+                            "block_type_id": 0,
+                            "height_offset": 0,
+                            "width_offset": 0,
+                            "x": x,
+                            "y": y, })
+                    else:
+                        gen_tile(xmlgen, tile)
+            # 6. nodes
+            with xmlgen.element("rr_nodes"):
+                for node in delegate.iter_nodes():
+                    gen_node(xmlgen, node)
+            # 7. edges
+            with xmlgen.element("rr_edges"):
+                for node in delegate.iter_edges():
+                    gen_edge(xmlgen, edge)

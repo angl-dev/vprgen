@@ -9,14 +9,6 @@
             "type": "integer",
             "minimum": 0,
         },
-        "x": {
-            "type": "integer",
-            "minimum": 0,
-        },
-        "y": {
-            "type": "integer",
-            "minimum": 0,
-        },
         "xoffset": {
             "type": "integer",
             "minimum": 0,
@@ -28,5 +20,5 @@
             "default": 0,
         },
     },
-    "required": ["type", "block_type_id", "x", "y"],
+    "required": ["type", "block_type_id"],
 }

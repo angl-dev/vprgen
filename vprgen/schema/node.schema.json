@@ -1,6 +1,54 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
+    "definitions": {
+        "timing": {
+            "type": "object",
+            "properties": {
+                "R": {
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "C": {
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0
+                }
+            },
+            "required": ["R", "C"],
+            "default": {
+                "R": 0,
+                "C": 0
+            }
+        },
+        "loc": {
+            "type": "object",
+            "properties": {
+                "xlow": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "xhigh": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ylow": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "yhigh": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ptc": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "required": ["xlow", "xhigh", "ylow", "yhigh", "ptc"]
+        }
+    },
     "oneOf": [{
         "properties": {
             "id": {
@@ -13,43 +61,8 @@
                 "exclusiveMinimum": 0,
                 "default": 1
             },
-            "timing": {
-                "type": "object",
-                "properties": {
-                    "R": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    },
-                    "C": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    }
-                },
-                "default": {
-                    "R": 0,
-                    "C": 0
-                }
-            },
-            "loc": {
-                "type": "object",
-                "properties": {
-                    "x": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    "y": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    "ptc": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                },
-                "required": ["x", "y", "ptc"]
-            }
+            "timing": { "$ref": "#/definitions/timing" },
+            "loc": { "$ref": "#/definitions/loc" }
         },
         "required": ["id", "type", "loc"]
     }, {
@@ -64,33 +77,23 @@
                 "exclusiveMinimum": 0,
                 "default": 1
             },
-            "timing": {
-                "type": "object",
-                "properties": {
-                    "R": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    },
-                    "C": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    }
-                },
-                "default": {
-                    "R": 0,
-                    "C": 0
-                }
-            },
+            "timing": { "$ref": "#/definitions/timing" },
             "loc": {
                 "type": "object",
                 "properties": {
-                    "x": {
+                    "xlow": {
                         "type": "integer",
                         "minimum": 0
                     },
-                    "y": {
+                    "xhigh": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "ylow": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "yhigh": {
                         "type": "integer",
                         "minimum": 0
                     },
@@ -100,7 +103,7 @@
                     },
                     "side": { "enum": ["LEFT", "TOP", "RIGHT", "BOTTOM"] }
                 },
-                "required": ["x", "y", "ptc", "side"]
+                "required": ["xlow", "xhigh", "ylow", "yhigh", "ptc", "side"]
             }
         },
         "required": ["id", "type", "loc"]
@@ -117,53 +120,8 @@
                 "exclusiveMinimum": 0,
                 "default": 1
             },
-            "timing": {
-                "type": "object",
-                "properties": {
-                    "R": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    },
-                    "C": {
-                        "type": "number",
-                        "minimum": 0,
-                        "default": 0
-                    }
-                },
-                "default": {
-                    "R": 0,
-                    "C": 0
-                }
-            },
-            "loc": {
-                "type": "object",
-                "properties": {
-                    "xlow": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    "xhigh": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "$comment": "The same as 'xlow' if not set"
-                    },
-                    "ylow": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    "yhigh": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "$comment": "The same as 'ylow' if not set"
-                    },
-                    "ptc": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                },
-                "required": ["xlow", "ylow", "ptc"]
-            },
+            "timing": { "$ref": "#/definitions/timing" },
+            "loc": { "$ref": "#/definitions/loc" },
             "segment_id": {
                 "type": "integer",
                 "minimum": 0
