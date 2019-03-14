@@ -366,7 +366,7 @@
                         "type": "integer",
                         "exclusiveMinimum": 0
                     },
-                    "equivalent": { "enum": ["full", "instance"] }
+                    "equivalent": { "enum": ["full"] }
                 },
                 "required": ["name", "num_pins"]
             }
