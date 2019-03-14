@@ -10,6 +10,8 @@ XML.
 
 ## Design Choices
 
+[Design Doc](https://docs.google.com/document/d/1Pd_ygB0PvSq_gPEYIm8sJEF-mYY2nk3kLsazLVL21uw/edit#)
+
 ### Validation
 VPRGEN always produces valid XML file, but does not guarantee valid VPR
 inputs. VPRGEN performs limited validation by using [JSON
