@@ -1,5 +1,5 @@
 from vprgen._xml import XMLGenerator
-from vprgen._gen_arch import (gen_model, gen_segment, gen_switch, gen_direct, gen_leaf_pb_type, gen_block)
+from vprgen.interface.dictbased import ArchitectureDelegate
 
 try:
     from io import BytesIO as StringIO
@@ -14,8 +14,9 @@ from json import dumps
 
 def test_gen_model():
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_model(xg, {
+        delegate._gen_model(xg, {
             "name": "single_port_ram",
             "input_ports": [{"name": "we", "clock": "clk"},
                 {"name": "addr", "clock": "clk", "combinational_sink_ports": ["out"]},
@@ -39,8 +40,9 @@ def test_gen_model():
 
 def test_gen_segment():
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_segment(xg, {
+        delegate._gen_arch_segment(xg, {
             "name": "L4",
             "length": 4,
             "id": 1,
@@ -61,8 +63,9 @@ def test_gen_segment():
 
 def test_gen_switch():
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_switch(xg, { "name": "default",
+        delegate._gen_arch_switch(xg, { "name": "default",
             "id": 0,
             "Tdel": 120e-12, })
     back = parse(stream.getvalue(), encoding="ascii")
@@ -77,8 +80,9 @@ def test_gen_switch():
 
 def test_gen_direct():
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_direct(xg, { "name": "adder_chain",
+        delegate._gen_direct(xg, { "name": "adder_chain",
             "from_pin": "clb.cout",
             "to_pin": "clb.cin",
             "y_offset": 1,
@@ -96,8 +100,9 @@ def test_gen_direct():
 
 def test_gen_leaf_pb_type():
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_leaf_pb_type(xg, {
+        delegate._gen_leaf_pb_type(xg, {
             "name": "lut_inst",
             "blif_model": ".names",
             "class": "lut",
@@ -134,10 +139,10 @@ def test_gen_leaf_pb_type():
         }}
 
 def test_gen_block():
-
     stream = StringIO()
+    delegate = ArchitectureDelegate()
     with XMLGenerator(stream) as xg:
-        gen_block(xg, {
+        delegate._gen_arch_block(xg, {
             "name": "IO_TOP",
             "capacity": 2,
             "input": [{

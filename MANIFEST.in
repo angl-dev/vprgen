@@ -1,1 +1,5 @@
-recursive-include vprgen/schema *.schema.json
+include MANIFEST.in
+graft tests
+graft vprgen/interface/dictbased/schema
+global-exclude __pycache__
+global-exclude *.pyc

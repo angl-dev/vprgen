@@ -16,10 +16,14 @@ class XMLGenerator(object):
 
     Args:
         f (file-like object): the output stream
+        pretty (:obj:`bool`): if the output XML should be nicely broken into multiple lines and indented
+        skip_stringify (:obj:`bool`): assumes the dict passed into `element` and `element_leaf` are already converted
+            to string objects
     """
-    def __init__(self, f, pretty = False):
+    def __init__(self, f, pretty = False, skip_stringify = False):
         self.__f = f
         self.__pretty = pretty
+        self.__skip_stringify = skip_stringify
 
     def __enter__(self):
         self.__context = xmlfile(self.__f, encoding='ascii')
@@ -31,7 +35,10 @@ class XMLGenerator(object):
         return self.__context.__exit__(exc_type, exc_value, traceback)
 
     def _stringify(self, d):
-        return {k: '{:g}'.format(v) if isinstance(v, float) else str(v) for k, v in iteritems(d)} 
+        if self.__skip_stringify:
+            return d
+        else:
+            return {k: '{:g}'.format(v) if isinstance(v, float) else str(v) for k, v in iteritems(d)} 
 
     def _indent(self):
         if self.__pretty and self._depth > 0:
