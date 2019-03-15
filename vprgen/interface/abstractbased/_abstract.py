@@ -135,7 +135,7 @@ class AbstractSwitchTdel(with_metaclass(ABCMeta, object)):
     def delay(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
-    num_inputs.fget.__annotations__ = {"return": float}
+    delay.fget.__annotations__ = {"return": float}
 
 class SwitchType(Enum):
     mux = 0

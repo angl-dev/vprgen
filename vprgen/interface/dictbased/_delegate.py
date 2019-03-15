@@ -6,9 +6,9 @@ except ImportError:
     pass
 
 try:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable
 except ImportError:
-    from collections import Mapping, Sequence
+    from collections import Iterable
 
 from vprgen._xml import XMLGenerator
 from jsonschema import validate
@@ -327,7 +327,7 @@ class ArchitectureDelegate(object):
                 "R": switch.get("R", 0),
                 "Cin": switch.get("Cin", 0),
                 "Cout": switch.get("Cout", 0), }
-        if isinstance(Tdel, Sequence):
+        if isinstance(Tdel, Iterable):
             with xmlgen.element("switch", attrs):
                 for item in Tdel:
                     xmlgen.element_leaf("Tdel", item)
@@ -560,7 +560,7 @@ class ArchitectureDelegate(object):
             xmlgen.element_leaf("sizing", {
                 "buf_size": 0,
                 "mux_trans_size": 0, })
-            if isinstance(switch["Tdel"], Mapping):
+            if isinstance(switch["Tdel"], Iterable):
                 raise NotImplementedError("rr_graph with a list of <Tdel> tags not supported yet")
             xmlgen.element_leaf("timing", {
                 "Cin": switch.get("Cin", 0),
