@@ -4,16 +4,16 @@
     "properties": {
         "src_node": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 0
         },
         "sink_node": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 0
         },
         "switch_id": {
             "type": "integer",
-            "minimum": 0,
-        },
+            "minimum": 0
+        }
     },
-    "required": ["src_node", "sink_node", "switch_id"],
+    "required": ["src_node", "sink_node", "switch_id"]
 }

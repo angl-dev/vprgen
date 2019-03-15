@@ -3,22 +3,22 @@
     "type": "object",
     "properties": {
         "type": {
-            "type": "string",
+            "type": "string"
         },
         "block_type_id": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": 0
         },
         "xoffset": {
             "type": "integer",
             "minimum": 0,
-            "default": 0,
+            "default": 0
         },
         "yoffset": {
             "type": "integer",
             "minimum": 0,
-            "default": 0,
-        },
+            "default": 0
+        }
     },
-    "required": ["type", "block_type_id"],
+    "required": ["type", "block_type_id"]
 }
