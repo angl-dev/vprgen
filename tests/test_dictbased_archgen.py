@@ -1,5 +1,5 @@
 from vprgen._xml import XMLGenerator
-from vprgen.interface.dictbased import ArchitectureDelegate
+from vprgen.dictbased import ArchitectureDelegate
 
 try:
     from io import BytesIO as StringIO

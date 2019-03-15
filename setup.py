@@ -21,7 +21,7 @@ setup(
             "Programming Language :: Python :: 3.7",
             "Topic :: Utilities",
             ],
-        install_requires = ["lxml", "jsonschema>=3.0.0", "future"],
+        install_requires = ["lxml", "jsonschema>=3.0.0", "future", "typing", "enum34"],
         setup_requires = ["pytest-runner"],
         tests_require = ["pytest", "xmltodict"],
         )

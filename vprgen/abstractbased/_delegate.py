@@ -11,7 +11,7 @@ try:
 except ImportError:
     from collections import Iterable
 
-from vprgen.interface.abstractbased._abstract import *
+from vprgen.abstractbased._abstract import *
 from vprgen._xml import XMLGenerator
 
 from abc import ABCMeta, abstractproperty
@@ -27,6 +27,13 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     """Delegate class which is able to answer questions about what are in the architecture."""
     # -- required properties -------------------------------------------------
     @abstractproperty
+    def name(self):
+        """Name of the fixed layout."""
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    name.fget.__annotations__ = {"return": str}
+
+    @abstractproperty
     def width(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
@@ -37,13 +44,6 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
     height.fget.__annotations__ = {"return": int}
-
-    @abstractproperty
-    def name(self):
-        """Name of the fixed layout."""
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    name.fget.__annotations__ = {"return": int}
 
     @abstractproperty
     def x_channel_width(self):
@@ -92,8 +92,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     def nodes(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    nodes.fget.__annotations__ = {"return": Iterable[Union[AbstractSourceSinkNode, AbstractIpinOpinNode,
-        AbstractChanxChanyNode]]}
+    nodes.fget.__annotations__ = {"return": Iterable[AbstractNode]}
 
     @property
     def edges(self):
@@ -286,9 +285,9 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     _gen_arch_switch.__annotations__ = {"xmlgen": XMLGenerator, "switch": AbstractSwitch}
 
-    def _gen_arch_combinational_timing(self, xmlgen, parent)
+    def _gen_arch_combinational_timing(self, xmlgen, parent):
         """Generate a series of <delay_constant> and <delay_matrix> tags for the given ``parent``."""
-        for delay_constant in parent.delay_constant:
+        for delay_constant in parent.delay_constants:
             attrs = { "in_port": delay_constant.in_port,
                     "out_port": delay_constant.out_port, }
             if delay_constant.min_ is not None:  # in case min_ is 0.0
@@ -296,7 +295,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             if delay_constant.max_ is not None:  # in case max_ is 0.0
                 attrs["max"] = str(delay_constant.max_)
             xmlgen.element_leaf('delay_constant', attrs)
-        for delay_matrix in parent.delay_matrix:
+        for delay_matrix in parent.delay_matrices:
             xmlgen.element_leaf('delay_matrix', {
                 "type": "max" if delay_matrix.type_ is DelayMatrixType.max_ else "min",
                 "in_port": delay_matrix.in_port,
@@ -306,15 +305,15 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     _gen_arch_combinational_timing.__annotations__ = {
             "xmlgen": XMLGenerator, "parent": Union[AbstractLeafPbType, AbstractInterconnectItem], }
 
-    def _gen_arch_sequential_timing(self, xmlgen, parent)
+    def _gen_arch_sequential_timing(self, xmlgen, parent):
         """Generate a series of <T_setup>, <T_hold> and <T_clock_to_Q> tags for the given ``parent``."""
-        for tag, iterable in (("T_setup", parent.T_setup), ("T_hold", parent.T_hold)):
+        for tag, iterable in (("T_setup", parent.T_setups), ("T_hold", parent.T_holds)):
             for item in iterable:
                 xmlgen.element_leaf(tag, {
                     "port": item.port,
                     "clock": item.clock,
                     "value": str(item.value), })
-        for T_clock_to_Q in parent.T_clock_to_Q:
+        for T_clock_to_Q in parent.T_clock_to_Qs:
             attrs = { "port": T_clock_to_Q.port,
                     "clock": T_clock_to_Q.clock, }
             if T_clock_to_Q.min_ is not None:  # in case min_ is 0.0
@@ -334,9 +333,9 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
         if pb_type.class_:
             attrs["class"] = pb_type.class_.name
         with xmlgen.element("pb_type", attrs):
-            for tag, iterable in (("input", pb_type.input_),
-                    ("output", pb_type.output),
-                    ("clock", pb_type.clock)):
+            for tag, iterable in (("input", pb_type.inputs),
+                    ("output", pb_type.outputs),
+                    ("clock", pb_type.clocks)):
                 for port in iterable:
                     attrs = { "name": port.name,
                             "num_pins": str(port.num_pins), }
@@ -352,16 +351,16 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     def _gen_interconnect(self, xmlgen, parent):
         """Generate a <interconnect> tag for the given ``parent``."""
         with xmlgen.element("interconnect"):
-            for tag, iterable in (("complete", parent.complete),
-                    ("direct", parent.direct),
-                    ("mux", parent.mux)):
+            for tag, iterable in (("complete", parent.completes),
+                    ("direct", parent.directs),
+                    ("mux", parent.muxes)):
                 for item in iterable:
                     with xmlgen.element(tag, {
                         "name": item.name,
                         "input": item.input_,
                         "output": item.output, }):
                         self._gen_arch_combinational_timing(xmlgen, item)
-                        for pack in item.pack_pattern:
+                        for pack in item.pack_patterns:
                             xmlgen.element_leaf("pack_pattern", {
                                 "name": pack_pattern.name,
                                 "in_port": pack_pattern.in_port,
@@ -373,7 +372,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     def _gen_mode(self, xmlgen, mode):
         """Generate a <mode> tag for the given ``mode``."""
         with xmlgen.element("mode", {"name": mode.name}):
-            for pb_type in mode.pb_type:
+            for pb_type in mode.pb_types:
                 if isinstance(pb_type, AbstractLeafPbType):
                     self._gen_leaf_pb_type(xmlgen, pb_type)
                 else:
@@ -387,20 +386,20 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
         with xmlgen.element("pb_type", {
             "name": pb_type.name,
             "num_pb": str(pb_type.num_pb), }):
-            for tag, iterable in (("input", pb_type.input_),
-                    ("output", pb_type.output),
-                    ("clock", pb_type.clock)):
+            for tag, iterable in (("input", pb_type.inputs),
+                    ("output", pb_type.outputs),
+                    ("clock", pb_type.clocks)):
                 for port in iterable:
                     xmlgen.element_leaf(tag, {
                         "name": port.name,
                         "num_pins": str(port.num_pins), })
             got_modes = False
-            for mode in pb_type.mode:
+            for mode in pb_type.modes:
                 got_modes = True
                 self._gen_mode(xmlgen, mode)
             if got_modes:
                 return
-            for sub_pb in pb_type.pb_type:
+            for sub_pb in pb_type.pb_types:
                 if isinstance(sub_pb, AbstractLeafPbType):
                     self._gen_leaf_pb_type(xmlgen, sub_pb)
                 else:
@@ -416,7 +415,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             "capacity": str(block.capacity),
             "width": str(block.width),
             "height": str(block.height), }):
-            for input_ in block.input_:
+            for input_ in block.inputs:
                 attrs = { "name": input_.name,
                         "num_pins": str(input_.num_pins), }
                 if input_.equivalent:
@@ -424,13 +423,13 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 if input_.is_non_clock_global:
                     attrs["is_non_clock_global"] = "true"
                 xmlgen.element_leaf("input", attrs)
-            for output in block.output:
+            for output in block.outputs:
                 attrs = { "name": output.name,
                         "num_pins": str(output.num_pins), }
                 if output.equivalent:
                     attrs["equivalent"] = output.equivalent.name
                 xmlgen.element_leaf("output", attrs)
-            for clock in block.clock:
+            for clock in block.clocks:
                 attrs = { "name": clock.name,
                         "num_pins": str(clock.num_pins), }
                 if clock.equivalent:
@@ -439,7 +438,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             if block.fc:
                 with xmlgen.element('fc', {
                     "in_type": "abs" if block.fc.in_type is FCType.abs_ else "frac",
-                    "out_type": "abs" if block.fc.out_type is FCType.abs_ else "frac"
+                    "out_type": "abs" if block.fc.out_type is FCType.abs_ else "frac",
                     "in_val": str(block.fc.in_val),
                     "out_val": str(block.fc.out_val), }):
                     for fc_override in block.fc.fc_override:
@@ -470,12 +469,12 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                                 attrs['switch_override'] = loc.switch_override
                             xmlgen.element_leaf("sb_loc", attrs)
             got_modes = False
-            for mode in block.mode:
+            for mode in block.modes:
                 got_modes = True
                 self._gen_mode(xmlgen, mode)
             if got_modes:
                 return
-            for sub_pb in block.pb_type:
+            for sub_pb in block.pb_types:
                 if isinstance(sub_pb, AbstractLeafPbType):
                     self._gen_leaf_pb_type(xmlgen, sub_pb)
                 else:

@@ -422,52 +422,52 @@ class AbstractLeafPbType(_AbstractNonTopPbType):
     class_.fget.__annotations__ = {"return": Optional[LeafPbTypeClass]}
 
     @property
-    def input_(self):
+    def inputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    input_.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
+    inputs.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
 
     @property
-    def output(self):
+    def outputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    output.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
+    outputs.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
 
     @property
-    def clock(self):
+    def clocks(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    clock.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
+    clocks.fget.__annotations__ = {"return": Iterable[AbstractLeafPbTypePort]}
 
     @property
-    def delay_constant(self):
+    def delay_constants(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    delay_constant.fget.__annotations__ = {"return": Iterable[AbstractDelayConstant]}
+    delay_constants.fget.__annotations__ = {"return": Iterable[AbstractDelayConstant]}
 
     @property
-    def delay_matrix(self):
+    def delay_matrices(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    delay_matrix.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
+    delay_matrices.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
 
     @property
-    def T_setup(self):
+    def T_setups(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    T_setup.fget.__annotations__ = {"return": Iterable[AbstractTSetupOrTHold]}
+    T_setups.fget.__annotations__ = {"return": Iterable[AbstractTSetupOrTHold]}
 
     @property
-    def T_hold(self):
+    def T_holds(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    T_hold.fget.__annotations__ = {"return": Iterable[AbstractTSetupOrTHold]}
+    T_holds.fget.__annotations__ = {"return": Iterable[AbstractTSetupOrTHold]}
 
     @property
-    def T_clock_to_Q(self):
+    def T_clock_to_Qs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    T_clock_to_Q.fget.__annotations__ = {"return": Iterable[AbstractTClockToQ]}
+    T_clock_to_Qs.fget.__annotations__ = {"return": Iterable[AbstractTClockToQ]}
 
 class AbstractPackPattern(with_metaclass(ABCMeta, object)):
     # -- required properties -------------------------------------------------
@@ -511,24 +511,50 @@ class AbstractInterconnectItem(with_metaclass(ABCMeta, object)):
 
     # -- optional properties -------------------------------------------------
     @property
-    def pack_pattern(self):
+    def pack_patterns(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    pack_pattern.fget.__annotations__ = {"return": Iterable[AbstractPackPattern]}
+    pack_patterns.fget.__annotations__ = {"return": Iterable[AbstractPackPattern]}
 
     @property
-    def delay_constant(self):
+    def delay_constants(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    delay_constant.fget.__annotations__ = {"return": Iterable[AbstractDelayConstant]}
+    delay_constants.fget.__annotations__ = {"return": Iterable[AbstractDelayConstant]}
 
     @property
-    def delay_matrix(self):
+    def delay_matrices(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    delay_matrix.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
+    delay_matrices.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
 
-class AbstractMode(with_metaclass(ABCMeta, object)):
+class _AbstractNonLeafPbType(with_metaclass(ABCMeta, object)):
+    # -- optional properties -------------------------------------------------
+    @property
+    def completes(self):
+        return _empty_iterable
+    # Python 2 and 3 compatible type checking
+    completes.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+
+    @property
+    def muxes(self):
+        return _empty_iterable
+    # Python 2 and 3 compatible type checking
+    muxes.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+
+    @property
+    def directs(self):
+        return _empty_iterable
+    # Python 2 and 3 compatible type checking
+    directs.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+
+    @property
+    def pb_types(self):
+        return _empty_iterable
+    # Python 2 and 3 compatible type checking
+    pb_types.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
+
+class AbstractMode(_AbstractNonLeafPbType):
     # -- required properties -------------------------------------------------
     @abstractproperty
     def name(self):
@@ -536,80 +562,31 @@ class AbstractMode(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     name.fget.__annotations__ = {"return": str}
 
+class AbstractIntermediatePbType(_AbstractNonTopPbType, _AbstractNonLeafPbType):
     # -- optional properties -------------------------------------------------
     @property
-    def complete(self):
+    def inputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    complete.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+    inputs.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
 
     @property
-    def mux(self):
+    def outputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    mux.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+    outputs.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
 
     @property
-    def direct(self):
+    def clocks(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    direct.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
+    clocks.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
 
     @property
-    def pb_type(self):
+    def modes(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    pb_type.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
-
-class AbstractIntermediatePbType(_AbstractNonTopPbType):
-    # -- optional properties -------------------------------------------------
-    @property
-    def input_(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    input_.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
-
-    @property
-    def output(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    output.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
-
-    @property
-    def clock(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    clock.fget.__annotations__ = {"return": Iterable[AbstractPbTypePort]}
-
-    @property
-    def complete(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    complete.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def mux(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    mux.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def direct(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    direct.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def pb_type(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    pb_type.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
-
-    @property
-    def mode(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    mode.fget.__annotations__ = {"return": Iterable[AbstractMode]}
+    modes.fget.__annotations__ = {"return": Iterable[AbstractMode]}
 
 class TopPbTypePortEquivalent(Enum):
     full = 0
@@ -804,7 +781,7 @@ class AbstractSwitchblockLocations(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     sb_loc.fget.__annotations__ = {"return": Optional[Iterable[AbstractSbLoc]]}
 
-class AbstractTopPbType(with_metaclass(ABCMeta, object)):
+class AbstractTopPbType(_AbstractNonLeafPbType):
     # -- required properties -------------------------------------------------
     @abstractproperty
     def name(self):
@@ -838,52 +815,28 @@ class AbstractTopPbType(with_metaclass(ABCMeta, object)):
     height.fget.__annotations__ = {"return": int}
 
     @property
-    def input_(self):
+    def inputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    input_.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeInputPort]}
+    inputs.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeInputPort]}
 
     @property
-    def output(self):
+    def outputs(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    output.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeOutputOrClockPort]}
+    outputs.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeOutputOrClockPort]}
 
     @property
-    def clock(self):
+    def clocks(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    clock.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeOutputOrClockPort]}
+    clocks.fget.__annotations__ = {"return": Iterable[AbstractTopPbTypeOutputOrClockPort]}
 
     @property
-    def complete(self):
+    def modes(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    complete.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def mux(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    mux.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def direct(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    direct.fget.__annotations__ = {"return": Iterable[AbstractInterconnectItem]}
-
-    @property
-    def pb_type(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    pb_type.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
-
-    @property
-    def mode(self):
-        return _empty_iterable
-    # Python 2 and 3 compatible type checking
-    mode.fget.__annotations__ = {"return": Iterable[AbstractMode]}
+    modes.fget.__annotations__ = {"return": Iterable[AbstractMode]}
 
     @property
     def fc(self):
@@ -983,7 +936,26 @@ class AbstractNodeLoc(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     yhigh.fget.__annotations__ = {"return": int}
 
-class _AbstractNode(with_metaclass(ABCMeta, object)):
+    @property
+    def side(self):
+        """Required for IPIN/OPIN node."""
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    side.fget.__annotations__ = {"return": Side}
+
+class NodeType(Enum):
+    SOURCE = 0
+    SINK = 1
+    IPIN = 2
+    OPIN = 3
+    CHANX = 4
+    CHANY = 5
+
+class SegmentDirection(Enum):
+    INC_DIR = 0
+    DEC_DIR = 1
+
+class AbstractNode(with_metaclass(ABCMeta, object)):
     # -- required properties -------------------------------------------------
     @abstractproperty
     def id_(self):
@@ -991,7 +963,33 @@ class _AbstractNode(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     id_.fget.__annotations__ = {"return": int}
 
+    @abstractproperty
+    def type_(self):
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    type_.fget.__annotations__ = {"return": NodeType}
+
+    @abstractproperty
+    def loc(self):
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    loc.fget.__annotations__ = {"return": AbstractNodeLoc}
+
     # -- optional properties -------------------------------------------------
+    @property
+    def direction(self):
+        """Required for CHANX/CHANY node."""
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    direction.fget.__annotations__ = {"return": SegmentDirection}
+
+    @property
+    def segment_id(self):
+        """Required for CHANX/CHANY node."""
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    segment_id.fget.__annotations__ = {"return": int}
+
     @property
     def capacity(self):
         return 1 
@@ -1003,84 +1001,6 @@ class _AbstractNode(with_metaclass(ABCMeta, object)):
         return None
     # Python 2 and 3 compatible type checking
     timing.fget.__annotations__ = {"return": Optional[AbstractTiming]}
-
-class SourceSinkNodeType(Enum):
-    SOURCE = 0
-    SINK = 1
-
-class AbstractSourceSinkNode(_AbstractNode):
-    # -- required properties -------------------------------------------------
-    @abstractproperty
-    def type_(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    type_.fget.__annotations__ = {"return": SourceSinkNodeType}
-
-    @abstractproperty
-    def loc(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    loc.fget.__annotations__ = {"return": AbstractNodeLoc}
-
-class IpinOpinNodeType(Enum):
-    IPIN = 0
-    OPIN = 1
-
-class AbstractIpinOpinNodeLoc(AbstractNodeLoc):
-    # -- required properties -------------------------------------------------
-    @abstractproperty
-    def side(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    side.fget.__annotations__ = {"return": Side}
-
-class AbstractIpinOpinNode(_AbstractNode):
-    # -- required properties -------------------------------------------------
-    @abstractproperty
-    def type_(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    type_.fget.__annotations__ = {"return": SourceSinkNodeType}
-
-    @abstractproperty
-    def loc(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    loc.fget.__annotations__ = {"return": AbstractIpinOpinNodeLoc}
-
-class ChanxChanyNodeType(Enum):
-    CHANX = 0
-    CHANY = 1
-
-class SegmentDirection(Enum):
-    INC_DIR = 0
-    DEC_DIR = 1
-
-class AbstractChanxChanyNode(_AbstractNode):
-    # -- required properties -------------------------------------------------
-    @abstractproperty
-    def type_(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    type_.fget.__annotations__ = {"return": ChanxChanyNodeType}
-
-    @abstractproperty
-    def direction(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    direction.fget.__annotations__ = {"return": SegmentDirection}
-
-    @abstractproperty
-    def loc(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    loc.fget.__annotations__ = {"return": AbstractNodeLoc}
-
-    @abstractproperty
-    def segment_id(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    segment_id.fget.__annotations__ = {"return": int}
 
 # ----------------------------------------------------------------------------
 # -- Edge-related Abstracts --------------------------------------------------
