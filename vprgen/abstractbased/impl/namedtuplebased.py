@@ -277,3 +277,64 @@ class Tile(_namedtuple('Tile',
         ('yoffset', int, 0), )),
     AbstractTile):
     pass
+
+class Timing(_namedtuple('Timing',
+    attributes = (('R', float),
+        ('C', float), )),
+    AbstractTiming):
+    pass
+
+# Use conventional `namedtuple` because the default values for `xhigh` and `yhigh` are dependent on other arguments
+class NodeLoc(namedtuple('NodeLoc', 'xlow ylow ptc xhigh yhigh side'), AbstractNodeLoc):
+    def __new__(cls, xlow, ylow, ptc, xhigh = None, yhigh = None, side = None):
+        return super(NodeLoc, cls).__new__(cls, xlow, ylow, ptc,
+                xlow if xhigh is None else xhigh,
+                ylow if yhigh is None else yhigh,
+                side)
+    __new__.__annotations__ = {'xlow': int, 'ylow': int, 'ptc': int,
+            'xhigh': Optional[int], 'yhigh': Optional[int], 'side': Optional[Side]}
+
+    @property
+    def side(self):
+        s = super(NodeLoc, self).side
+        if s is None:
+            raise NotImplementedError
+        return s
+
+class Node(_namedtuple('Node',
+    attributes = (('id_', int),
+        ('type_', NodeType),
+        ('locs', AbstractNodeLoc), ),
+    defaults = (('direction', Optional[SegmentDirection], None),
+        ('segment_id', Optional[int], None),
+        ('capacity', Optional[int], None),
+        ('timing', Optional[AbstractTiming], None), )),
+    AbstractNode):
+
+    @property
+    def direction(self):
+        d = super(Node, self).direction
+        if d is None:
+            raise NotImplementedError
+        return d
+
+    @property
+    def segment_id(self):
+        i = super(Node, self).segment_id
+        if i is None:
+            raise NotImplementedError
+        return i
+
+    @property
+    def capacity(self):
+        c = super(Node, self).capacity
+        if c is None:
+            raise NotImplementedError
+        return c
+
+class Edge(_namedtuple('Edge',
+    attributes = (('src_node', int),
+        ('sink_node', int),
+        ('switch_id', int), )),
+    AbstractEdge):
+    pass

@@ -16,7 +16,7 @@ from vprgen._xml import XMLGenerator
 
 from abc import ABCMeta, abstractproperty
 from typing import Iterable, Union, Optional
-from itertools import product
+from itertools import product, count
 
 _empty_iterable = tuple()
 
@@ -161,63 +161,61 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             ostream: a file-like object, like a `file` or a `StringIO`
             pretty (:obj:`bool`): if the output XML file should be nicely broken into multiple lines and indented
         """
-        raise NotImplementedError
-        with XMLGenerator(ostream, pretty) as xmlgen:
+        with XMLGenerator(ostream, pretty, True) as xmlgen:
             with xmlgen.element("rr_graph"):
                 # 1. channels
                 with xmlgen.element("channels"):
                     xmlgen.element_leaf("channel", {
-                        "chan_width_max": max(delegate.get_x_channel_width(),
-                            delegate.get_y_channel_width()),
-                        "x_max": delegate.get_x_channel_width(),
-                        "x_min": delegate.get_x_channel_width(),
-                        "y_max": delegate.get_y_channel_width(),
-                        "y_min": delegate.get_y_channel_width(), })
-                    for y in range(delegate.get_height()):
+                        "chan_width_max": max(self.x_channel_width, self.y_channel_width),
+                        "x_max": self.x_channel_width,
+                        "x_min": self.x_channel_width,
+                        "y_max": self.y_channel_width,
+                        "y_min": self.y_channel_width, })
+                    for y in range(self.height):
                         xmlgen.element_leaf("x_list", {
                             "index": y,
-                            "info": delegate.get_x_channel_width(), })
-                    for x in range(delegate.get_width()):
+                            "info": self.x_channel_width, })
+                    for x in range(self.width):
                         xmlgen.element_leaf("y_list", {
                             "index": x,
-                            "info": delegate.get_y_channel_width(), })
+                            "info": self.y_channel_width, })
                 # 2. segments
                 with xmlgen.element("segments"):
-                    for segment in delegate.iter_segments():
+                    for segment in self.segments:
                         self._gen_rrg_segment(xmlgen, segment)
                 # 3. switches
                 with xmlgen.element("switches"):
-                    for switch in delegate.iter_switches():
+                    for switch in self.switches:
                         self._gen_rrg_switch(xmlgen, switch)
                 # 4. blocks
                 with xmlgen.element("block_types"):
                     xmlgen.element_leaf("block_type", {
                         "name": "EMPTY",
-                        "id": 0,
-                        "width": 1,
-                        "height": 1, })
-                    for block in delegate.iter_blocks():
+                        "id": "0",
+                        "width": "1",
+                        "height": "1", })
+                    for block in self.blocks:
                         self._gen_rrg_block(xmlgen, block)
                 # 5. grid
                 with xmlgen.element("grid"):
-                    for x, y in product(range(delegate.get_width()), range(delegate.get_height())):
-                        tile = delegate.get_tile(x, y)
+                    for x, y in product(range(self.width), range(self.height)):
+                        tile = self.get_tile(x, y)
                         if tile is None:
                             xmlgen.element_leaf("grid_loc", {
-                                "block_type_id": 0,
-                                "height_offset": 0,
-                                "width_offset": 0,
-                                "x": x,
-                                "y": y, })
+                                "block_type_id": "0",
+                                "height_offset": "0",
+                                "width_offset": "0",
+                                "x": str(x),
+                                "y": str(y), })
                         else:
                             self._gen_rrg_tile(xmlgen, tile)
                 # 6. nodes
                 with xmlgen.element("rr_nodes"):
-                    for node in delegate.iter_nodes():
+                    for node in self.nodes:
                         self._gen_node(xmlgen, node)
                 # 7. edges
                 with xmlgen.element("rr_edges"):
-                    for node in delegate.iter_edges():
+                    for node in self.edges:
                         self._gen_edge(xmlgen, edge)
 
     # -- Private methods -----------------------------------------------------
@@ -506,3 +504,107 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             "z_offset": str(direct.z_offset), })
     # Python 2 and 3 compatible type checking
     _gen_direct.__annotations__ = {"xmlgen": XMLGenerator, "direct": AbstractDirect}
+
+    def _gen_rrg_segment(self, xmlgen, segment):
+        """Generate a <segment> tag for the given ``segment``."""
+        with xmlgen.element("segment", {
+            "id": str(segment.id_),
+            "name": segment.name, }):
+            xmlgen.element_leaf("timing", {
+                "R_per_meter": segment.Rmetal,
+                "C_per_meter": segment.Cmetal, })
+    # Python 2 and 3 compatible type checking
+    _gen_rrg_segment.__annotations__ = {"xmlgen": XMLGenerator, "segment": AbstractSegment}
+    
+    def _gen_rrg_switch(self, xmlgen, switch):
+        """Generate a <switch> tag for the given ``switch``."""
+        with xmlgen.element("switch", {
+            "buffered": "1" if switch.type_ in (SwitchType.mux, SwitchType.tristate, SwitchType.buffer) else "0",
+            "configurable": "1" if switch.type_ in (SwitchType.mux, SwitchType.tristate, SwitchType.pass_gate) else "0",
+            "id": str(switch.id_),
+            "name": str(switch.name),
+            "type": "buffer" if switch.type_ is SwitchType.buffer_ else switch.type_.name, }):
+            xmlgen.element_leaf("sizing", {
+                "buf_size": "0",
+                "mux_trans_size": "0", })
+            if isinstance(switch.Tdel, Iterable):
+                raise NotImplementedError("rr_graph with a list of <Tdel> tags not supported yet")
+            xmlgen.element_leaf("timing", {
+                "Cin": str(switch.Cin),
+                "Cout": str(switch.Cout),
+                "R": str(switch.R),
+                "Tdel": str(switch.Tdel), })
+    # Python 2 and 3 compatible type checking
+    _gen_rrg_switch.__annotations__ = {"xmlgen": XMLGenerator, "switch": AbstractSwitch}
+    
+    def _gen_rrg_block(self, xmlgen, block):
+        """Generate a <block_type> tag for the given ``block``."""
+        with xmlgen.element("block_type", {
+            "name": block.name,
+            "id": str(block.id_),
+            "width": str(block.width),
+            "height": str(block.height), }):
+            ptc_it = count()
+            for z, (key, iterable) in product(range(block.capacity),
+                    (("input", block.inputs), 
+                        ("output", block.outputs),
+                        ("clock", block.clocks), )):
+                for port in iterable:
+                    for bit in range(port.num_pins):
+                        with xmlgen.element("pin_class", {
+                            "type": "OUTPUT" if key == "output" else "INPUT", }):
+                            if block.capacity == 1:
+                                xmlgen.element_leaf("pin", {
+                                    "ptc": next(ptc_it), },
+                                    "{}.{}[{}]".format(block.name, port.name, bit))
+                            else:
+                                xmlgen.element_leaf("pin", {
+                                    "ptc": next(ptc_it), },
+                                    "{}[{}].{}[{}]".format(block.name, z, port.name, bit))
+    # Python 2 and 3 compatible type checking
+    _gen_rrg_block.__annotations__ = {"xmlgen": XMLGenerator, "block": AbstractTopPbType}
+    
+    def _gen_rrg_tile(self, xmlgen, tile, x, y):
+        """Generate a <grid_loc> tag for the given ``tile``."""
+        xmlgen.element_leaf("grid_loc", {
+            "block_type_id": str(tile.block_type_id),
+            "x": str(x),
+            "y": str(y),
+            "width_offset": str(tile.xoffset),
+            "height_offset": str(tile.yoffset), })
+    # Python 2 and 3 compatible type checking
+    _gen_rrg_tile.__annotations__ = {"xmlgen": XMLGenerator, "tile": AbstractTile, "x": int, "y": int}
+    
+    def _gen_node(self, xmlgen, node):
+        """Generate a <node> tag for the given ``node``."""
+        attrs = { "capacity": str(node.capacity),
+                "id": str(node.id_),
+                "type": node.type_.name, }
+        if node.type_ in (NodeType.CHANX, NodeType.CHANY):
+            attrs["direction"] = node.direction.name
+        with xmlgen.element("node", attrs):
+            attrs = {"xlow": str(node.loc.xlow),
+                    "ylow": str(node.loc.ylow),
+                    "xhigh": str(node.loc.xhigh),
+                    "yhigh": str(node.loc.yhigh),
+                    "ptc": str(node.loc.ptc), }
+            if node.type_ in (NodeType.IPIN, NodeType.OPIN):
+                attrs["side"] = node.loc.side.name.upper()
+            xmlgen.element_leaf("loc", attrs)
+            if node.timing:
+                xmlgen.element_leaf("timing", {"R": str(node.timing.R), "C": str(node.timing.C)})
+            else:
+                xmlgen.element_leaf("timing", {"R": "0", "C": "0"})
+            if node.type_ in (NodeType.CHANX, NodeType.CHANY):
+                xmlgen.element_leaf("segment", {"segment_id": str(node.segment_id)})
+    # Python 2 and 3 compatible type checking
+    _gen_node.__annotations__ = {"xmlgen": XMLGenerator, "node": AbstractNode}
+    
+    def _gen_edge(self, xmlgen, edge):
+        """Generate a <edge> tag for the given ``edge``."""
+        xmlgen.element_leaf("edge", {
+            "src_node": str(edge.src_node),
+            "sink_node": str(edge.sink_node),
+            "switch_id": str(edge.switch_id), })
+    # Python 2 and 3 compatible type checking
+    _gen_edge.__annotations__ = {"xmlgen": XMLGenerator, "edge": AbstractEdge}
