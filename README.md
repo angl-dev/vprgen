@@ -2,11 +2,10 @@
 
 ## Usage
 
-Users should inherit the `vprgen.ArchitectureDelegate` class and implement
-required methods. Call the `vprgen.gen_arch_xml` function and/or
-`vprgen.gen_rrg_xml` function on an instance of the inherited class to
-generate the architecture description XML and/or the routing resource graph
-XML.
+Users should inherit the `vprgen.{dict, abstract}based.ArchitectureDelegate`
+class and implement required methods/properties. The class provides
+`gen_arch_xml` and `gen_rrg_xml` which generates the architecture description
+XML and routing resource graph XML, respectively.
 
 ## Design Choices
 

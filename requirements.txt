@@ -1,0 +1,7 @@
+lxml
+jsonschema>=3.0.0
+future
+typing
+enum34
+pytest
+xmltodict
