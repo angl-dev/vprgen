@@ -402,7 +402,7 @@ class _AbstractNonTopPbType(with_metaclass(ABCMeta, object)):
     # -- optional properties -------------------------------------------------
     @property
     def num_pb(self):
-        raise NotImplementedError
+        return 1
     # Python 2 and 3 compatible type checking
     num_pb.fget.__annotations__ = {"return": int}
 
@@ -642,7 +642,7 @@ class AbstractFCOverride(with_metaclass(ABCMeta, object)):
 
 class AbstractFC(with_metaclass(ABCMeta, object)):
     # -- required properties -------------------------------------------------
-    @property
+    @abstractproperty
     def in_type(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
@@ -654,7 +654,7 @@ class AbstractFC(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     in_val.fget.__annotations__ = {"return": Union[float, int]}
 
-    @property
+    @abstractproperty
     def out_type(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
