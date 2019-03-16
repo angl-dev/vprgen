@@ -300,7 +300,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 "type": "max" if delay_matrix.type_ is DelayMatrixType.max_ else "min",
                 "in_port": delay_matrix.in_port,
                 "out_port": delay_matrix.out_port, },
-                '\n' + '\n'.join(' '.join(str(v) for v in vector) for vector in delay.values))
+                '\n' + '\n'.join(' '.join(str(v) for v in vector) for vector in delay_matrix.values))
     # Python 2 and 3 compatible type checking
     _gen_arch_combinational_timing.__annotations__ = {
             "xmlgen": XMLGenerator, "parent": Union[AbstractLeafPbType, AbstractInterconnectItem], }
@@ -320,7 +320,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 attrs["min"] = str(T_clock_to_Q.min_)
             if T_clock_to_Q.max_ is not None:  # in case max_ is 0.0
                 attrs["max"] = str(T_clock_to_Q.max_)
-            xmlgen.element_leaf('T_clock_to_Q', T_clock_to_Q)
+            xmlgen.element_leaf('T_clock_to_Q', attrs)
     # Python 2 and 3 compatible type checking
     _gen_arch_combinational_timing.__annotations__ = {
             "xmlgen": XMLGenerator, "parent": AbstractLeafPbType, }
@@ -357,10 +357,10 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 for item in iterable:
                     with xmlgen.element(tag, {
                         "name": item.name,
-                        "input": item.input_,
-                        "output": item.output, }):
+                        "input": ' '.join(item.inputs),
+                        "output": ' '.join(item.outputs), }):
                         self._gen_arch_combinational_timing(xmlgen, item)
-                        for pack in item.pack_patterns:
+                        for pack_pattern in item.pack_patterns:
                             xmlgen.element_leaf("pack_pattern", {
                                 "name": pack_pattern.name,
                                 "in_port": pack_pattern.in_port,
@@ -441,7 +441,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                     "out_type": "abs" if block.fc.out_type is FCType.abs_ else "frac",
                     "in_val": str(block.fc.in_val),
                     "out_val": str(block.fc.out_val), }):
-                    for fc_override in block.fc.fc_override:
+                    for fc_override in block.fc.fc_overrides:
                         xmlgen.element_leaf("fc_override", {
                             "fc_type": "abs" if block.fc.in_type is FCType.abs_ else "frac",
                             "port_name": fc_override.port_name,
@@ -450,7 +450,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             if block.pinlocations:
                 with xmlgen.element('pinlocations', {
                     "pattern": block.pinlocations.pattern.name, }):
-                    for loc in block.pinlocations.loc:
+                    for loc in block.pinlocations.locs:
                         xmlgen.element_leaf("loc", {
                             "side": loc.side.name,
                             "xoffset": str(loc.xoffset),
@@ -460,7 +460,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 with xmlgen.element("switchblock_locations", {
                     "pattern": ("all" if block.switchblock_locations.pattern is SwitchblockLocationsPattern.all_ else
                         block.switchblock_locations.pattern.name), }):
-                        for loc in block.switchblock_locations.sb_loc:
+                        for loc in block.switchblock_locations.sb_locs:
                             attrs = {
                                 "type": loc.type_.name,
                                 "xoffset": str(loc.xoffset),

@@ -498,16 +498,16 @@ class AbstractInterconnectItem(with_metaclass(ABCMeta, object)):
     name.fget.__annotations__ = {"return": str}
 
     @abstractproperty
-    def input_(self):
+    def inputs(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
-    input_.fget.__annotations__ = {"return": str}
+    inputs.fget.__annotations__ = {"return": Iterable[str]}
 
     @abstractproperty
-    def output(self):
+    def outputs(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
-    output.fget.__annotations__ = {"return": str}
+    outputs.fget.__annotations__ = {"return": Iterable[str]}
 
     # -- optional properties -------------------------------------------------
     @property
@@ -529,6 +529,13 @@ class AbstractInterconnectItem(with_metaclass(ABCMeta, object)):
     delay_matrices.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
 
 class _AbstractNonLeafPbType(with_metaclass(ABCMeta, object)):
+    # -- required properties -------------------------------------------------
+    @abstractproperty
+    def name(self):
+        raise NotImplementedError
+    # Python 2 and 3 compatible type checking
+    name.fget.__annotations__ = {"return": str}
+
     # -- optional properties -------------------------------------------------
     @property
     def completes(self):
@@ -555,12 +562,7 @@ class _AbstractNonLeafPbType(with_metaclass(ABCMeta, object)):
     pb_types.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
 
 class AbstractMode(_AbstractNonLeafPbType):
-    # -- required properties -------------------------------------------------
-    @abstractproperty
-    def name(self):
-        raise NotImplementedError
-    # Python 2 and 3 compatible type checking
-    name.fget.__annotations__ = {"return": str}
+    pass
 
 class AbstractIntermediatePbType(_AbstractNonTopPbType, _AbstractNonLeafPbType):
     # -- optional properties -------------------------------------------------
@@ -666,10 +668,10 @@ class AbstractFC(with_metaclass(ABCMeta, object)):
 
     # -- optional properties -------------------------------------------------
     @property
-    def fc_override(self):
+    def fc_overrides(self):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
-    fc_override.fget.__annotations__ = {"return": Iterable[AbstractFCOverride]}
+    fc_overrides.fget.__annotations__ = {"return": Iterable[AbstractFCOverride]}
 
 class Side(Enum):
     left = 0
@@ -776,10 +778,10 @@ class AbstractSwitchblockLocations(with_metaclass(ABCMeta, object)):
 
     # -- optional properties -------------------------------------------------
     @property
-    def sb_loc(self):
+    def sb_locs(self):
         return None
     # Python 2 and 3 compatible type checking
-    sb_loc.fget.__annotations__ = {"return": Optional[Iterable[AbstractSbLoc]]}
+    sb_locs.fget.__annotations__ = {"return": Optional[Iterable[AbstractSbLoc]]}
 
 class AbstractTopPbType(_AbstractNonLeafPbType):
     # -- required properties -------------------------------------------------
@@ -970,10 +972,10 @@ class AbstractNode(with_metaclass(ABCMeta, object)):
     type_.fget.__annotations__ = {"return": NodeType}
 
     @abstractproperty
-    def loc(self):
+    def locs(self):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
-    loc.fget.__annotations__ = {"return": AbstractNodeLoc}
+    locs.fget.__annotations__ = {"return": AbstractNodeLoc}
 
     # -- optional properties -------------------------------------------------
     @property

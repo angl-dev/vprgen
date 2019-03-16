@@ -1,10 +1,12 @@
 from future.utils import iteritems
 
-from typing import Iterable, Tuple, Any, Optional
+from typing import Iterable, Tuple, Any, Optional, Union
 from vprgen.abstractbased._abstract import *
 from collections import namedtuple, OrderedDict
 
-def _namedtuple(class_name, attributes = tuple(), defaults = tuple()):
+_empty_iterable = tuple()
+
+def _namedtuple(class_name, attributes = _empty_iterable, defaults = _empty_iterable):
     """Enhanced `namedtuple` with default values and type hints.
 
     Args:
@@ -36,14 +38,14 @@ class ModelInputPort(_namedtuple('ModelInputPort',
     attributes = (('name', str), ),
     defaults = (("is_clock", bool, False),
         ("clock", Optional[str], None),
-        ("combinational_sink_ports", Iterable[str], tuple()), )),
+        ("combinational_sink_ports", Iterable[str], _empty_iterable), )),
     AbstractModelInputPort):
     pass
 
 class Model(_namedtuple('Model',
     attributes = (('name', str), ),
-    defaults = (("input_ports", Iterable[AbstractModelInputPort], tuple()),
-        ("output_ports", Iterable[AbstractModelOutputPort], tuple()), )),
+    defaults = (("input_ports", Iterable[AbstractModelInputPort], _empty_iterable),
+        ("output_ports", Iterable[AbstractModelOutputPort], _empty_iterable), )),
     AbstractModel):
     pass
 
@@ -58,4 +60,220 @@ class Segment(_namedtuple('Segment',
         ('sb', Optional[Iterable[bool]], None),
         ('cb', Optional[Iterable[bool]], None), )),
     AbstractSegment):
+    pass
+
+class SwitchTdel(_namedtuple('SwitchTdel',
+    attributes = (('num_inputs', int),
+        ('delay', float), )),
+    AbstractSwitchTdel):
+    pass
+
+class Switch(_namedtuple('Switch',
+    attributes = (('name', str),
+        ('id_', int),
+        ('Tdel', Union[float, Iterable[AbstractSwitchTdel]])),
+    defaults = (('type_', SwitchType, SwitchType.mux),
+        ('R', float, 0.0),
+        ('Cin', float, 0.0),
+        ('Cout', float, 0.0), )),
+    AbstractSwitch):
+    pass
+
+class Direct(_namedtuple('Direct',
+    attributes = (('name', str),
+        ('from_pin', str),
+        ('to_pin', str),
+        ('switch_name', str), ),
+    defaults = (('x_offset', int, 0),
+        ('y_offset', int, 0),
+        ('z_offset', int, 0), )),
+    AbstractDirect):
+    pass
+
+class DelayConstant(_namedtuple('DelayConstant',
+    attributes = (('in_port', str),
+        ('out_port', str), ),
+    defaults = (('min_', Optional[float], None),
+        ('max_', Optional[float], None), )),
+    AbstractDelayConstant):
+    pass
+
+class DelayMatrix(_namedtuple('DelayMatrix',
+    attributes = (('type_', DelayMatrixType),
+        ('in_port', str),
+        ('out_port', str),
+        ('values', Iterable[Iterable[float]]), )),
+    AbstractDelayMatrix):
+    pass
+
+class TSetupOrHold(_namedtuple('TSetupOrHold',
+    attributes = (('port', str),
+        ('clock', str),
+        ('value', float), )),
+    AbstractTSetupOrTHold):
+    pass
+
+class TClockToQ(_namedtuple('TClockToQ',
+    attributes = (('port', str),
+        ('clock', str), ),
+    defaults = (('min_', Optional[float], None),
+        ('max_', Optional[float], None), )),
+    AbstractTClockToQ):
+    pass
+
+class PbTypePort(_namedtuple('PbTypePort',
+    attributes = (('name', str),
+        ('num_pins', int), )),
+    AbstractPbTypePort):
+    pass
+
+class LeafPbTypePort(_namedtuple('LeafPbTypePort',
+    attributes = (('name', str),
+        ('num_pins', int), ),
+    defaults = (('port_class', Optional[LeafPbTypePortClass], None), )),
+    AbstractLeafPbTypePort):
+    pass
+
+class LeafPbType(_namedtuple('LeafPbType',
+    attributes = (('name', str),
+        ('blif_model', str), ),
+    defaults = (('num_pb', int, 1),
+        ('class_', Optional[LeafPbTypeClass], None),
+        ('inputs', Iterable[AbstractLeafPbTypePort], _empty_iterable),
+        ('outputs', Iterable[AbstractLeafPbTypePort], _empty_iterable),
+        ('clocks', Iterable[AbstractLeafPbTypePort], _empty_iterable),
+        ('delay_constants', Iterable[AbstractDelayConstant], _empty_iterable),
+        ('delay_matrices', Iterable[AbstractDelayMatrix], _empty_iterable),
+        ('T_setups', Iterable[AbstractTSetupOrTHold], _empty_iterable),
+        ('T_holds', Iterable[AbstractTSetupOrTHold], _empty_iterable),
+        ('T_clock_to_Qs', Iterable[AbstractTClockToQ], _empty_iterable), )),
+    AbstractLeafPbType):
+    pass
+
+class PackPattern(_namedtuple('PackPattern',
+    attributes = (('name', str),
+        ('in_port', str),
+        ('out_port', str), )),
+    AbstractPackPattern):
+    pass
+
+class InterconnectItem(_namedtuple('InterconnectItem',
+    attributes = (('name', str),
+        ('inputs', Iterable[str]),
+        ('outputs', Iterable[str]), ),
+    defaults = (('pack_patterns', Iterable[AbstractPackPattern], _empty_iterable),
+        ('delay_constants', Iterable[AbstractDelayConstant], _empty_iterable),
+        ('delay_matrices', Iterable[AbstractDelayMatrix], _empty_iterable), )),
+    AbstractInterconnectItem):
+    pass
+
+class Mode(_namedtuple('Mode',
+    attributes = (('name', str), ),
+    defaults = (('completes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('muxes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('directs', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable), )),
+    AbstractMode):
+    pass
+
+class IntermediatePbType(_namedtuple('IntermediatePbType', 
+    attributes = (('name', str), ),
+    defaults = (('num_pb', int, 1),
+        ('inputs', Iterable[AbstractPbTypePort], _empty_iterable),
+        ('outputs', Iterable[AbstractPbTypePort], _empty_iterable),
+        ('clocks', Iterable[AbstractPbTypePort], _empty_iterable),
+        ('modes', Iterable[AbstractMode], _empty_iterable),
+        ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable),
+        ('completes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('muxes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('directs', Iterable[AbstractInterconnectItem], _empty_iterable), )),
+    AbstractIntermediatePbType):
+    pass
+
+class TopPbTypeOutputOrClockPort(_namedtuple('TopPbTypeOutputOrClockPort',
+    attributes = (('name', str),
+        ('num_pins', int), ),
+    defaults = (('equivalent', Optional[TopPbTypePortEquivalent], None), )),
+    AbstractTopPbTypeOutputOrClockPort):
+    pass
+
+class TopPbTypeInputPort(_namedtuple('TopPbTypeInputPort',
+    attributes = (('name', str),
+        ('num_pins', int), ),
+    defaults = (('equivalent', Optional[TopPbTypePortEquivalent], None),
+        ('is_non_clock_global', bool, False), )),
+    AbstractTopPbTypeInputPort):
+    pass
+
+class FCOverride(_namedtuple('FCOverride',
+    attributes = (('fc_type', FCType),
+        ('port_name', str),
+        ('segment_name', str),
+        ('fc_val', Union[float, int]), )),
+    AbstractFCOverride):
+    pass
+
+class FC(_namedtuple('FC',
+    attributes = (('in_type', FCType),
+        ('in_val', Union[float, int]),
+        ('out_type', FCType),
+        ('out_val', Union[float, int]), ),
+    defaults = (('fc_overrides', Iterable[AbstractFCOverride], _empty_iterable), )),
+    AbstractFC):
+    pass
+
+class PinLocationsLoc(_namedtuple('PinLocationsLoc',
+    attributes = (('side', Side),
+        ('ports', Iterable[str]), ),
+    defaults = (('xoffset', int, 0),
+        ('yoffset', int, 0), )),
+    AbstractPinLocationsLoc):
+    pass
+
+class PinLocations(_namedtuple('PinLocations',
+    attributes = (('pattern', PinLocationsPattern), ),
+    defaults = (('locs', Iterable[AbstractPinLocationsLoc], _empty_iterable), )),
+    AbstractPinLocations):
+    pass
+
+class SbLoc(_namedtuple('SbLoc',
+    attributes = (('type_', SbLocType), ),
+    defaults = (('xoffset', int, 0),
+        ('yoffset', int, 0),
+        ('switch_override', Optional[str], None), )),
+    AbstractSbLoc):
+    pass
+
+class SwitchblockLocations(_namedtuple('SwitchblockLocations',
+    attributes = (('pattern', SwitchblockLocationsPattern), ),
+    defaults = (('sb_locs', Optional[Iterable[AbstractSbLoc]], None), )),
+    AbstractSwitchblockLocations):
+    pass
+
+class TopPbType(_namedtuple('TopPbType',
+    attributes = (('name', str),
+        ('id_', int), ),
+    defaults = (('capacity', int, 1),
+        ('width', int, 1),
+        ('height', int, 1),
+        ('inputs', Iterable[AbstractTopPbTypeInputPort], _empty_iterable),
+        ('outputs', Iterable[AbstractTopPbTypeOutputOrClockPort], _empty_iterable),
+        ('clocks', Iterable[AbstractTopPbTypeOutputOrClockPort], _empty_iterable),
+        ('modes', Iterable[AbstractMode], _empty_iterable),
+        ('completes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('muxes', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('directs', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable),
+        ('fc', Optional[FC], None),
+        ('pinlocations', Optional[PinLocations], None),
+        ('switchblock_locations', Optional[SwitchblockLocations], None), )),
+    AbstractTopPbType):
+    pass
+
+class Tile(_namedtuple('Tile',
+    attributes = (('type_', str),
+        ('block_type_id', int), ),
+    defaults = (('xoffset', int, 0),
+        ('yoffset', int, 0), )),
+    AbstractTile):
     pass
