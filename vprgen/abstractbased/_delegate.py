@@ -142,9 +142,13 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                         if tile:
                             self._gen_arch_tile(xmlgen, tile, x, y)
                 # 6. directs
-                with xmlgen.element("directlist"):
-                    for direct in self.directs:
-                        self._gen_direct(xmlgen, direct)
+                try:
+                    next(iter(self.directs))
+                    with xmlgen.element("directlist"):
+                        for direct in self.directs:
+                            self._gen_direct(xmlgen, direct)
+                except StopIteration:
+                    pass
                 # 7. fake device
                 with xmlgen.element("device"):
                     xmlgen.element_leaf("sizing", {"R_minW_nmos": "0", "R_minW_pmos": "0"})
