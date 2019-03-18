@@ -170,19 +170,19 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                 # 1. channels
                 with xmlgen.element("channels"):
                     xmlgen.element_leaf("channel", {
-                        "chan_width_max": max(self.x_channel_width, self.y_channel_width),
-                        "x_max": self.x_channel_width,
-                        "x_min": self.x_channel_width,
-                        "y_max": self.y_channel_width,
-                        "y_min": self.y_channel_width, })
+                        "chan_width_max": str(max(self.x_channel_width, self.y_channel_width)),
+                        "x_max": str(self.x_channel_width),
+                        "x_min": str(self.x_channel_width),
+                        "y_max": str(self.y_channel_width),
+                        "y_min": str(self.y_channel_width), })
                     for y in range(self.height):
                         xmlgen.element_leaf("x_list", {
-                            "index": y,
-                            "info": self.x_channel_width, })
+                            "index": str(y),
+                            "info": str(self.x_channel_width), })
                     for x in range(self.width):
                         xmlgen.element_leaf("y_list", {
-                            "index": x,
-                            "info": self.y_channel_width, })
+                            "index": str(x),
+                            "info": str(self.y_channel_width), })
                 # 2. segments
                 with xmlgen.element("segments"):
                     for segment in self.segments:
@@ -198,7 +198,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                         "id": "0",
                         "width": "1",
                         "height": "1", })
-                    for block in self.blocks:
+                    for block in self.complex_blocks:
                         self._gen_rrg_block(xmlgen, block)
                 # 5. grid
                 with xmlgen.element("grid"):
@@ -212,7 +212,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                                 "x": str(x),
                                 "y": str(y), })
                         else:
-                            self._gen_rrg_tile(xmlgen, tile)
+                            self._gen_rrg_tile(xmlgen, tile, x, y)
                 # 6. nodes
                 with xmlgen.element("rr_nodes"):
                     for node in self.nodes:
@@ -515,15 +515,15 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             "id": str(segment.id_),
             "name": segment.name, }):
             xmlgen.element_leaf("timing", {
-                "R_per_meter": segment.Rmetal,
-                "C_per_meter": segment.Cmetal, })
+                "R_per_meter": str(segment.Rmetal),
+                "C_per_meter": str(segment.Cmetal), })
     # Python 2 and 3 compatible type checking
     _gen_rrg_segment.__annotations__ = {"xmlgen": XMLGenerator, "segment": AbstractSegment}
     
     def _gen_rrg_switch(self, xmlgen, switch):
         """Generate a <switch> tag for the given ``switch``."""
         with xmlgen.element("switch", {
-            "buffered": "1" if switch.type_ in (SwitchType.mux, SwitchType.tristate, SwitchType.buffer) else "0",
+            "buffered": "1" if switch.type_ in (SwitchType.mux, SwitchType.tristate, SwitchType.buffer_) else "0",
             "configurable": "1" if switch.type_ in (SwitchType.mux, SwitchType.tristate, SwitchType.pass_gate) else "0",
             "id": str(switch.id_),
             "name": str(switch.name),
@@ -559,11 +559,11 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                             "type": "OUTPUT" if key == "output" else "INPUT", }):
                             if block.capacity == 1:
                                 xmlgen.element_leaf("pin", {
-                                    "ptc": next(ptc_it), },
+                                    "ptc": str(next(ptc_it)), },
                                     "{}.{}[{}]".format(block.name, port.name, bit))
                             else:
                                 xmlgen.element_leaf("pin", {
-                                    "ptc": next(ptc_it), },
+                                    "ptc": str(next(ptc_it)), },
                                     "{}[{}].{}[{}]".format(block.name, z, port.name, bit))
     # Python 2 and 3 compatible type checking
     _gen_rrg_block.__annotations__ = {"xmlgen": XMLGenerator, "block": AbstractTopPbType}

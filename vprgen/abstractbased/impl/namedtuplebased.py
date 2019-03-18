@@ -304,10 +304,10 @@ class NodeLoc(namedtuple('NodeLoc', 'xlow ylow ptc xhigh yhigh side'), AbstractN
 class Node(_namedtuple('Node',
     attributes = (('id_', int),
         ('type_', NodeType),
-        ('locs', AbstractNodeLoc), ),
+        ('loc', AbstractNodeLoc), ),
     defaults = (('direction', Optional[SegmentDirection], None),
         ('segment_id', Optional[int], None),
-        ('capacity', Optional[int], None),
+        ('capacity', int, 1),
         ('timing', Optional[AbstractTiming], None), )),
     AbstractNode):
 
@@ -324,13 +324,6 @@ class Node(_namedtuple('Node',
         if i is None:
             raise NotImplementedError
         return i
-
-    @property
-    def capacity(self):
-        c = super(Node, self).capacity
-        if c is None:
-            raise NotImplementedError
-        return c
 
 class Edge(_namedtuple('Edge',
     attributes = (('src_node', int),
