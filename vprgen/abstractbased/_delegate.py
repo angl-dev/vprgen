@@ -219,7 +219,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                         self._gen_node(xmlgen, node)
                 # 7. edges
                 with xmlgen.element("rr_edges"):
-                    for node in self.edges:
+                    for edge in self.edges:
                         self._gen_edge(xmlgen, edge)
 
     # -- Private methods -----------------------------------------------------
