@@ -1,7 +1,7 @@
-lxml
-jsonschema>=3.0.0
-future
-typing
 enum34
+future
+jsonschema>=3.0.0
+lxml
 pytest
+typing
 xmltodict
