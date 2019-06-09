@@ -1,4 +1,4 @@
-from future.utils import with_metaclass
+from future.utils import with_metaclass, iteritems
 from future.builtins import range, object
 
 try:
@@ -223,6 +223,20 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                         self._gen_edge(xmlgen, edge)
 
     # -- Private methods -----------------------------------------------------
+    def _gen_metadata(self, xmlgen, metadata):
+        """Generate a <metadata> tag for the given ``metadata``."""
+        if metadata:
+            with xmlgen.element("metadata"):
+                for key, value in iteritems(metadata):
+                    if isinstance(value, str):
+                        xmlgen.element_leaf("meta", {"name": key}, value)
+                    else:
+                        for v in value:
+                            xmlgen.element_leaf("meta", {"name": key}, v)
+    # python 2 and 3 compatible type checking
+    _gen_metadata.__annotations__ = {"xmlgen": XMLGenerator,
+            "metadata": Optional[Mapping[str, Union[str, Iterable[str]]]]}
+
     def _gen_model(self, xmlgen, model):
         """Generate a <model> tag for the given ``model``."""
         with xmlgen.element("model", {"name": model.name}):
@@ -344,6 +358,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                     if port.port_class:
                         attrs["port_class"] = port.port_class.name
                     xmlgen.element_leaf(tag, attrs)
+            self._gen_metadata(xmlgen, pb_type.metadata)
             self._gen_arch_sequential_timing(xmlgen, pb_type)
             self._gen_arch_combinational_timing(xmlgen, pb_type)
     # Python 2 and 3 compatible type checking
@@ -361,6 +376,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                         "name": item.name,
                         "input": ' '.join(item.inputs),
                         "output": ' '.join(item.outputs), }):
+                        self._gen_metadata(xmlgen, item.metadata)
                         self._gen_arch_combinational_timing(xmlgen, item)
                         for pack_pattern in item.pack_patterns:
                             xmlgen.element_leaf("pack_pattern", {
@@ -374,6 +390,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     def _gen_mode(self, xmlgen, mode):
         """Generate a <mode> tag for the given ``mode``."""
         with xmlgen.element("mode", {"name": mode.name}):
+            self._gen_metadata(xmlgen, mode.metadata)
             for pb_type in mode.pb_types:
                 if isinstance(pb_type, AbstractLeafPbType):
                     self._gen_leaf_pb_type(xmlgen, pb_type)
@@ -395,6 +412,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
                     xmlgen.element_leaf(tag, {
                         "name": port.name,
                         "num_pins": str(port.num_pins), })
+            self._gen_metadata(xmlgen, pb_type.metadata)
             got_modes = False
             for mode in pb_type.modes:
                 got_modes = True
@@ -417,6 +435,7 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
             "capacity": str(block.capacity),
             "width": str(block.width),
             "height": str(block.height), }):
+            self._gen_metadata(xmlgen, block.metadata)
             for input_ in block.inputs:
                 attrs = { "name": input_.name,
                         "num_pins": str(input_.num_pins), }
@@ -488,11 +507,12 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     def _gen_arch_tile(self, xmlgen, tile, x, y):
         """Generate a <single> tag for the given ``tile``."""
         if tile.xoffset == 0 and tile.yoffset == 0:
-            xmlgen.element_leaf("single", {
+            with xmlgen.element("single", {
                 "type": tile.type_,
                 "x": str(x),
                 "y": str(y),
-                "priority": str(1)})
+                "priority": str(1)}):
+                self._gen_metadata(xmlgen, tile.metadata)
     # Python 2 and 3 compatible type checking
     _gen_arch_tile.__annotations__ = {"xmlgen": XMLGenerator, "tile": AbstractTile, "x": int, "y": int}
     
@@ -606,9 +626,10 @@ class ArchitectureDelegate(with_metaclass(ABCMeta, object)):
     
     def _gen_edge(self, xmlgen, edge):
         """Generate a <edge> tag for the given ``edge``."""
-        xmlgen.element_leaf("edge", {
+        with xmlgen.element("edge", {
             "src_node": str(edge.src_node),
             "sink_node": str(edge.sink_node),
-            "switch_id": str(edge.switch_id), })
+            "switch_id": str(edge.switch_id), }):
+            self._gen_metadata(xmlgen, edge.metadata)
     # Python 2 and 3 compatible type checking
     _gen_edge.__annotations__ = {"xmlgen": XMLGenerator, "edge": AbstractEdge}

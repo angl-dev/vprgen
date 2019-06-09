@@ -1,6 +1,6 @@
 from future.utils import iteritems
 
-from typing import Iterable, Tuple, Any, Optional, Union
+from typing import Iterable, Tuple, Any, Optional, Union, Mapping
 from vprgen.abstractbased._abstract import *
 from collections import namedtuple, OrderedDict
 
@@ -146,7 +146,8 @@ class LeafPbType(_namedtuple('LeafPbType',
         ('delay_matrices', Iterable[AbstractDelayMatrix], _empty_iterable),
         ('T_setups', Iterable[AbstractTSetupOrTHold], _empty_iterable),
         ('T_holds', Iterable[AbstractTSetupOrTHold], _empty_iterable),
-        ('T_clock_to_Qs', Iterable[AbstractTClockToQ], _empty_iterable), )),
+        ('T_clock_to_Qs', Iterable[AbstractTClockToQ], _empty_iterable),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractLeafPbType):
     pass
 
@@ -163,7 +164,8 @@ class InterconnectItem(_namedtuple('InterconnectItem',
         ('outputs', Iterable[str]), ),
     defaults = (('pack_patterns', Iterable[AbstractPackPattern], _empty_iterable),
         ('delay_constants', Iterable[AbstractDelayConstant], _empty_iterable),
-        ('delay_matrices', Iterable[AbstractDelayMatrix], _empty_iterable), )),
+        ('delay_matrices', Iterable[AbstractDelayMatrix], _empty_iterable),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractInterconnectItem):
     pass
 
@@ -172,7 +174,8 @@ class Mode(_namedtuple('Mode',
     defaults = (('completes', Iterable[AbstractInterconnectItem], _empty_iterable),
         ('muxes', Iterable[AbstractInterconnectItem], _empty_iterable),
         ('directs', Iterable[AbstractInterconnectItem], _empty_iterable),
-        ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable), )),
+        ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractMode):
     pass
 
@@ -186,7 +189,8 @@ class IntermediatePbType(_namedtuple('IntermediatePbType',
         ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable),
         ('completes', Iterable[AbstractInterconnectItem], _empty_iterable),
         ('muxes', Iterable[AbstractInterconnectItem], _empty_iterable),
-        ('directs', Iterable[AbstractInterconnectItem], _empty_iterable), )),
+        ('directs', Iterable[AbstractInterconnectItem], _empty_iterable),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractIntermediatePbType):
     pass
 
@@ -266,7 +270,8 @@ class TopPbType(_namedtuple('TopPbType',
         ('pb_types', Iterable[Union[AbstractLeafPbType, AbstractIntermediatePbType]], _empty_iterable),
         ('fc', Optional[FC], None),
         ('pinlocations', Optional[PinLocations], None),
-        ('switchblock_locations', Optional[SwitchblockLocations], None), )),
+        ('switchblock_locations', Optional[SwitchblockLocations], None),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractTopPbType):
     pass
 
@@ -274,7 +279,8 @@ class Tile(_namedtuple('Tile',
     attributes = (('type_', str),
         ('block_type_id', int), ),
     defaults = (('xoffset', int, 0),
-        ('yoffset', int, 0), )),
+        ('yoffset', int, 0),
+        ('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractTile):
     pass
 
@@ -328,6 +334,7 @@ class Node(_namedtuple('Node',
 class Edge(_namedtuple('Edge',
     attributes = (('src_node', int),
         ('sink_node', int),
-        ('switch_id', int), )),
+        ('switch_id', int), ),
+    defaults = (('metadata', Optional[Mapping[str, Union[str, Iterable[str]]]], None), )),
     AbstractEdge):
     pass

@@ -92,6 +92,7 @@ def test_gen_leaf_pb_type():
             outputs = (LeafPbTypePort('out', 1, LeafPbTypePortClass.lut_out), ),
             delay_matrices = (DelayMatrix(DelayMatrixType.min_, 'in', 'out',
                 ((120e-12, ), ) * 4), ),
+            metadata = {"fasm_type": "LUT", "fasm_lut": "lut_inst"},
             ))
     back = parse(stream.getvalue(), encoding="ascii", dict_constructor=dict)
     gold = parse("""
@@ -104,6 +105,10 @@ def test_gen_leaf_pb_type():
             1.2e-10
             1.2e-10
         </delay_matrix>
+        <metadata>
+            <meta name="fasm_type">LUT</meta>
+            <meta name="fasm_lut">lut_inst</meta>
+        </metadata>
     </pb_type>
     """, dict_constructor=dict)
 
@@ -119,13 +124,16 @@ def test_gen_intermediate_pb_type():
                     outputs = (LeafPbTypePort('inpad', 1), )), ),
                 directs = (InterconnectItem('inpad', ('extio_i.inpad', ), ('extio.inpad', ),
                     delay_constants = (DelayConstant('extio_i.inpad', 'extio.inpad',
-                        min_ = 0.0), )), )),
+                        min_ = 0.0), )), ),
+                metadata = {"fasm_features": "extio_i"}, ),
                     Mode('extio_o',
                 pb_types = (LeafPbType('extio_o', '.output',
                     inputs = (LeafPbTypePort('outpad', 1), )), ),
                 directs = (InterconnectItem('outpad', ('extio.outpad', ), ('extio_o.outpad', ),
                     delay_constants = (DelayConstant('extio.outpad', 'extio_o.outpad',
-                        min_ = 0.0), )), )), )))
+                        min_ = 0.0), )), ),
+                metadata = {"fasm_features": "extio_o"}, ), ),
+            metadata = {"fasm_prefix": "extio"}, ))
     back = parse(stream.getvalue(), encoding='ascii', dict_constructor=dict)
     gold = parse("""
 	<pb_type name="extio" num_pb="1">
@@ -140,6 +148,9 @@ def test_gen_intermediate_pb_type():
 			<pb_type blif_model=".input" name="extio_i" num_pb="1">
 				<output name="inpad" num_pins="1"></output>
 			</pb_type>
+            <metadata>
+                <meta name="fasm_features">extio_i</meta>
+            </metadata>
 		</mode>
 		<mode name="extio_o">
 			<interconnect>
@@ -150,7 +161,13 @@ def test_gen_intermediate_pb_type():
 			<pb_type blif_model=".output" name="extio_o" num_pb="1">
 				<input name="outpad" num_pins="1"></input>
 			</pb_type>
+            <metadata>
+                <meta name="fasm_features">extio_o</meta>
+            </metadata>
 		</mode>
+        <metadata>
+            <meta name="fasm_prefix">extio</meta>
+        </metadata>
 	</pb_type>
     """, dict_constructor=dict)
     assert back == gold

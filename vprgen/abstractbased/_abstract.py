@@ -1,7 +1,7 @@
 from future.utils import with_metaclass
 from future.builtins import object
 
-from typing import Optional, Iterable, Union
+from typing import Optional, Iterable, Union, Mapping
 from abc import ABCMeta, abstractproperty, abstractmethod
 from enum import Enum
 
@@ -406,6 +406,12 @@ class _AbstractNonTopPbType(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     num_pb.fget.__annotations__ = {"return": int}
 
+    @property
+    def metadata(self):
+        return None
+    # Python 2 and 3 compatible type checking
+    metadata.fget.__annotations__ = {"return": Optional[Mapping[str, Union[str, Iterable[str]]]]}
+
 class AbstractLeafPbType(_AbstractNonTopPbType):
     # -- required properties -------------------------------------------------
     @abstractproperty
@@ -528,6 +534,12 @@ class AbstractInterconnectItem(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     delay_matrices.fget.__annotations__ = {"return": Iterable[AbstractDelayMatrix]}
 
+    @property
+    def metadata(self):
+        return None
+    # Python 2 and 3 compatible type checking
+    metadata.fget.__annotations__ = {"return": Optional[Mapping[str, Union[str, Iterable[str]]]]}
+
 class _AbstractNonLeafPbType(with_metaclass(ABCMeta, object)):
     # -- required properties -------------------------------------------------
     @abstractproperty
@@ -560,6 +572,12 @@ class _AbstractNonLeafPbType(with_metaclass(ABCMeta, object)):
         return _empty_iterable
     # Python 2 and 3 compatible type checking
     pb_types.fget.__annotations__ = {"return": Iterable[_AbstractNonTopPbType]}
+
+    @property
+    def metadata(self):
+        return None
+    # Python 2 and 3 compatible type checking
+    metadata.fget.__annotations__ = {"return": Optional[Mapping[str, Union[str, Iterable[str]]]]}
 
 class AbstractMode(_AbstractNonLeafPbType):
     pass
@@ -888,6 +906,12 @@ class AbstractTile(with_metaclass(ABCMeta, object)):
     # Python 2 and 3 compatible type checking
     yoffset.fget.__annotations__ = {"return": int}
 
+    @property
+    def metadata(self):
+        return None
+    # Python 2 and 3 compatible type checking
+    metadata.fget.__annotations__ = {"return": Optional[Mapping[str, Union[str, Iterable[str]]]]}
+
 # ----------------------------------------------------------------------------
 # -- Node-related Abstracts --------------------------------------------------
 # ----------------------------------------------------------------------------
@@ -1026,3 +1050,9 @@ class AbstractEdge(with_metaclass(ABCMeta, object)):
         raise NotImplementedError
     # Python 2 and 3 compatible type checking
     switch_id.fget.__annotations__ = {"return": int}
+
+    @property
+    def metadata(self):
+        return None
+    # Python 2 and 3 compatible type checking
+    metadata.fget.__annotations__ = {"return": Optional[Mapping[str, Union[str, Iterable[str]]]]}
